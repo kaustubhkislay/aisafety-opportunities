@@ -24,7 +24,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T1.3 | Review + merge PR #3 (public website) | ckpt | done | merged |
 | T0.3 | Fix: env-resilient site build (loadOpportunities) | auto | done | unplanned; CI fallout; PR #5 |
 | T2.1 | Slice 4: daily status/expiry job + tests | auto | done | backend/status_job.py; 9 tests; suite 52 green; PR pending |
-| T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | pending | drop before transmit |
+| T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | done | bot/exclusion.py; guards live + backfill; 13 tests; suite 65; PR pending |
 | T3.2 | Slice 5: per-channel public/private config | auto | pending | |
 | T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | pending | |
 | T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | pending | |
@@ -48,4 +48,5 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - 2026-06-26 — ledger created; all tasks pending.
 - 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Merged via PR #4.
 - 2026-06-26 — M1 complete: PRs #1/#3/#4 merged by owner. CI caught two issues: PR #2 (extraction) was orphaned (stacked-PR merge dropped it) and the site build crashed with no Airtable env. Both fixed in PR #5 (recover extraction + `loadOpportunities` build fallback); 43 backend + 27 web tests green. Merged.
-- 2026-06-26 — T2.1 done: `backend/status_job.py` — `derive_status` (mirrors web `deriveStatus`) + `run_status_job` (updates only changed records). Added `PyairtableBackend.all()`. 9 tests; full suite 52 green. Folds in the deadline-ISO-validation deferred item (malformed → active + warn). Next: M3 / T3.1 edge exclusion.
+- 2026-06-26 — T2.1 done: `backend/status_job.py` — `derive_status` (mirrors web `deriveStatus`) + `run_status_job` (updates only changed records). Added `PyairtableBackend.all()`. 9 tests; full suite 52 green. Merged via PR #6.
+- 2026-06-26 — T3.1 done: `bot/exclusion.py` `should_exclude` (tag vocabulary, word-boundary match, private-default channels). Wired into BOTH transmit paths — `Ingestor._forward` (live) and `backfill_channel` — so excluded messages never transmit (and are logged). `Ingestor` + backfill take a `channel_default` source (default public; T3.2 wires real config). 13 tests; full suite 65 green. Next: T3.2 per-channel config.
