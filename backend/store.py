@@ -35,6 +35,15 @@ class RawStore:
                 )
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS cursors (
+                    channel_id TEXT PRIMARY KEY,
+                    last_message_id TEXT NOT NULL,
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                )
+                """
+            )
 
     def insert_message(self, msg: dict) -> bool:
         values = [msg[col] for col in _MESSAGE_COLUMNS]
@@ -53,3 +62,24 @@ class RawStore:
                 "SELECT * FROM messages ORDER BY id ASC"
             ).fetchall()
             return [dict(row) for row in rows]
+
+    def get_cursor(self, channel_id: str) -> str | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT last_message_id FROM cursors WHERE channel_id = ?",
+                (channel_id,),
+            ).fetchone()
+            return row["last_message_id"] if row else None
+
+    def set_cursor(self, channel_id: str, message_id: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO cursors (channel_id, last_message_id)
+                VALUES (?, ?)
+                ON CONFLICT(channel_id)
+                DO UPDATE SET last_message_id = excluded.last_message_id,
+                              updated_at = datetime('now')
+                """,
+                (channel_id, message_id),
+            )
