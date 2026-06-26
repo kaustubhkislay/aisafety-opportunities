@@ -23,6 +23,10 @@ class PyairtableBackend:
 
         return self.table.first(formula=match({"dedup_key": key}))
 
+    def all(self) -> list[dict]:
+        # pyairtable returns records as {"id", "fields", "createdTime"}.
+        return self.table.all()
+
     def create(self, fields) -> str:
         return self.table.create(fields)["id"]
 
