@@ -1,6 +1,7 @@
 import discord
 
 from backend.store import RawStore
+from bot.channel_config import ChannelConfig
 from bot.config import load_config
 from bot.coordinator import Ingestor
 from bot.forwarder import Forwarder
@@ -14,7 +15,8 @@ def build_client(config: dict) -> discord.Client:
     store = RawStore(config["raw_db_path"])
     store.init_db()
     forwarder = Forwarder(config["ingest_base_url"], config["ingest_secret"])
-    ingestor = Ingestor(store, forwarder)
+    channel_config = ChannelConfig.from_json(config.get("channel_config_path", "channels.json"))
+    ingestor = Ingestor(store, forwarder, channel_config.channel_default)
 
     @client.event
     async def on_ready():
