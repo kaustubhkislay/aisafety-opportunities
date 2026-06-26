@@ -73,6 +73,20 @@ class RawStore:
             ).fetchall()
             return [dict(row) for row in rows]
 
+    def get_messages_by_server(self, server_id: str) -> list[dict]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM messages WHERE server_id = ? ORDER BY id ASC",
+                (server_id,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def delete_server(self, server_id: str) -> int:
+        """Delete all raw rows for a server (uninstall purge). Returns count."""
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM messages WHERE server_id = ?", (server_id,))
+            return cur.rowcount
+
     def get_cursor(self, channel_id: str) -> str | None:
         with self._connect() as conn:
             row = conn.execute(

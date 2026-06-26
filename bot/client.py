@@ -46,6 +46,11 @@ def build_client(config: dict) -> discord.Client:
         if is_retraction_edit(content):
             await forwarder.retract(str(payload.message_id))
 
+    @client.event
+    async def on_guild_remove(guild):
+        # Bot removed from a server -> purge everything ingested from it.
+        await forwarder.purge(str(guild.id))
+
     return client
 
 
