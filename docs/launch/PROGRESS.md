@@ -17,12 +17,13 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 
 | # | Task | Tag | Status | Note |
 |---|------|-----|--------|------|
-| T0.1 | CI: pytest (backend+bot) + vitest (web) on PRs | auto | done | ci.yml added; YAML validated; awaiting PR+merge |
-| T0.2 | Branch sequencing: merge #1 → rebase #2 → #3 | auto | pending | |
-| T1.1 | Review + merge PR #1 (bot ingestion) | ckpt | pending | human review gate |
-| T1.2 | Review + merge PR #2 (extraction pipeline) | ckpt | pending | rebase on main first |
-| T1.3 | Review + merge PR #3 (public website) | ckpt | pending | human review gate |
-| T2.1 | Slice 4: daily status/expiry job + tests | auto | pending | |
+| T0.1 | CI: pytest (backend+bot) + vitest (web) on PRs | auto | done | ci.yml; merged in PR #4 |
+| T0.2 | Branch sequencing: merge #1 → rebase #2 → #3 | auto | done | superseded — all PRs merged directly |
+| T1.1 | Review + merge PR #1 (bot ingestion) | ckpt | done | merged |
+| T1.2 | Review + merge PR #2 (extraction pipeline) | ckpt | done | PR #2 orphaned; recovered+merged via PR #5 |
+| T1.3 | Review + merge PR #3 (public website) | ckpt | done | merged |
+| T0.3 | Fix: env-resilient site build (loadOpportunities) | auto | done | unplanned; CI fallout; PR #5 |
+| T2.1 | Slice 4: daily status/expiry job + tests | auto | done | backend/status_job.py; 9 tests; suite 52 green; PR pending |
 | T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | pending | drop before transmit |
 | T3.2 | Slice 5: per-channel public/private config | auto | pending | |
 | T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | pending | |
@@ -45,4 +46,6 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 
 ## Log
 - 2026-06-26 — ledger created; all tasks pending.
-- 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Next: CKPT — open PR for `docs/launch-plan` → main and merge after CI green.
+- 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Merged via PR #4.
+- 2026-06-26 — M1 complete: PRs #1/#3/#4 merged by owner. CI caught two issues: PR #2 (extraction) was orphaned (stacked-PR merge dropped it) and the site build crashed with no Airtable env. Both fixed in PR #5 (recover extraction + `loadOpportunities` build fallback); 43 backend + 27 web tests green. Merged.
+- 2026-06-26 — T2.1 done: `backend/status_job.py` — `derive_status` (mirrors web `deriveStatus`) + `run_status_job` (updates only changed records). Added `PyairtableBackend.all()`. 9 tests; full suite 52 green. Folds in the deadline-ISO-validation deferred item (malformed → active + warn). Next: M3 / T3.1 edge exclusion.
