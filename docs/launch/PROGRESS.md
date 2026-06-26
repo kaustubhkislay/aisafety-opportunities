@@ -36,7 +36,6 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T6.3 | Vercel deploy + env vars | ckpt | pending | |
 | T6.4 | LLM spend cap (config + enforcement) | auto | pending | |
 | T6.5 | End-to-end smoke on a controlled server | ckpt | pending | the demo is the pitch |
-| T7.1 | Slice 8: Slack ingestion adapter | auto | pending | deferred, lowest priority |
 
 ## Folded-in fixes (attach to the noted milestone)
 - deadline ISO validation → T2.1 / extraction

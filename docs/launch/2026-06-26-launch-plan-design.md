@@ -60,8 +60,9 @@ Every task is tagged:
 - `[auto]` **T6.4 LLM spend cap** — config + enforcement around the extractor (the cheap pre-filter is the main lever; add a hard cap).
 - `[ckpt]` **T6.5 end-to-end smoke** — run the full path on a Discord server I control. *The live demo is the pitch.*
 
-### M7 — Slice 8: Slack adapter (deferred, lowest priority)
-- `[auto]` **T7.1** — second ingestion adapter on the same backend; same raw-store contract.
+### M7 — Slice 8: Slack adapter — **dropped for now**
+Deferred indefinitely (2026-06-26). The backend's raw-store contract keeps a second
+ingestion adapter cheap to add later; out of scope for this launch.
 
 ## The `/loop` runner
 
