@@ -1,0 +1,54 @@
+import type { Opportunity } from "@/lib/types";
+
+function str(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+function strOrNull(v: unknown): string | null {
+  return typeof v === "string" && v.length > 0 ? v : null;
+}
+
+export function mapRecord(fields: Record<string, unknown>): Opportunity {
+  return {
+    title: str(fields.title),
+    org: str(fields.org),
+    type: str(fields.type) || "other",
+    deadline: strOrNull(fields.deadline),
+    link: strOrNull(fields.link),
+    location: strOrNull(fields.location),
+    remote: Boolean(fields.remote),
+    sourceServer: str(fields.source_server),
+    sourceChannel: str(fields.source_channel),
+    dateSeen: strOrNull(fields.date_seen),
+    dedupKey: str(fields.dedup_key),
+  };
+}
+
+interface AirtablePage {
+  records: { fields: Record<string, unknown> }[];
+  offset?: string;
+}
+
+export async function fetchOpportunities(
+  fetchImpl: typeof fetch = fetch,
+): Promise<Opportunity[]> {
+  const key = process.env.AIRTABLE_API_KEY;
+  const base = process.env.AIRTABLE_BASE_ID;
+  const table = process.env.AIRTABLE_TABLE_NAME ?? "Opportunities";
+  if (!key || !base) throw new Error("Airtable env not configured");
+
+  const out: Opportunity[] = [];
+  let offset: string | undefined;
+  do {
+    const url = new URL(`https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}`);
+    url.searchParams.set("pageSize", "100");
+    if (offset) url.searchParams.set("offset", offset);
+    const res = await fetchImpl(url.toString(), {
+      headers: { Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) throw new Error(`Airtable request failed: ${res.status}`);
+    const data = (await res.json()) as AirtablePage;
+    for (const rec of data.records) out.push(mapRecord(rec.fields));
+    offset = data.offset;
+  } while (offset);
+  return out;
+}
