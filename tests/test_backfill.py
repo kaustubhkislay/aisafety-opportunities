@@ -61,3 +61,25 @@ async def test_backfill_passes_cursor_as_after(tmp_path):
 
     # cursor "100" is passed through to history(after=...) as a discord.Object-like id
     assert getattr(channel.seen_after, "id", None) == 100
+
+
+class FailingForwarder:
+    def __init__(self, fail_on_index):
+        self.forwarded = []
+        self.fail_on_index = fail_on_index
+
+    async def forward(self, payload: dict) -> int:
+        self.forwarded.append(payload)
+        return 503 if len(self.forwarded) - 1 == self.fail_on_index else 200
+
+
+async def test_backfill_holds_cursor_on_forward_failure(tmp_path):
+    store = RawStore(str(tmp_path / "raw.db"))
+    store.init_db()
+    forwarder = FailingForwarder(fail_on_index=1)  # second message fails
+    channel = FakeChannel(10, [_msg(101), _msg(102), _msg(103)])
+
+    count = await backfill_channel(channel, store, forwarder)
+
+    assert count == 1  # only the first forwarded successfully
+    assert store.get_cursor("10") == "101"  # cursor held at last success

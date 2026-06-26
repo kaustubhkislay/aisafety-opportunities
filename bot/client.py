@@ -30,8 +30,9 @@ def build_client(config: dict) -> discord.Client:
         if message.author == client.user:
             return
         payload = message_to_payload(message)
-        await forwarder.forward(payload)
-        store.set_cursor(payload["channel_id"], payload["message_id"])
+        status = await forwarder.forward(payload)
+        if status // 100 == 2:
+            store.set_cursor(payload["channel_id"], payload["message_id"])
 
     return client
 
