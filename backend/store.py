@@ -44,6 +44,16 @@ class RawStore:
                 )
                 """
             )
+            existing = [
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(messages)").fetchall()
+            ]
+            if "processed_at" not in existing:
+                conn.execute("ALTER TABLE messages ADD COLUMN processed_at TEXT")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_messages_processed_at "
+                "ON messages(processed_at)"
+            )
 
     def insert_message(self, msg: dict) -> bool:
         values = [msg[col] for col in _MESSAGE_COLUMNS]
@@ -84,4 +94,21 @@ class RawStore:
                       > CAST(cursors.last_message_id AS INTEGER)
                 """,
                 (channel_id, message_id),
+            )
+
+    def claim_unprocessed(self, limit: int) -> list[dict]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM messages WHERE processed_at IS NULL "
+                "ORDER BY id ASC LIMIT ?",
+                (limit,),
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def mark_processed(self, message_id: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE messages SET processed_at = datetime('now') "
+                "WHERE message_id = ?",
+                (message_id,),
             )

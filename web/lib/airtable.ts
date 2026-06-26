@@ -52,3 +52,19 @@ export async function fetchOpportunities(
   } while (offset);
   return out;
 }
+
+// Build-safe wrapper: the site is statically prerendered (ISR), so the page and
+// feed render at build time when Airtable env/connectivity may be absent (e.g.
+// CI). Per the design spec, a fetch failure must degrade to an empty list (and
+// log) rather than crash the build — ISR then serves the last good page once
+// data is reachable.
+export async function loadOpportunities(
+  fetchImpl: typeof fetch = fetch,
+): Promise<Opportunity[]> {
+  try {
+    return await fetchOpportunities(fetchImpl);
+  } catch (err) {
+    console.error("loadOpportunities: falling back to empty list:", err);
+    return [];
+  }
+}
