@@ -1,10 +1,10 @@
-import { fetchOpportunities } from "@/lib/airtable";
+import { loadOpportunities } from "@/lib/airtable";
 import { OpportunityList } from "@/app/opportunity-list";
 
 export const revalidate = 3600;
 
 export default async function Home() {
-  const opportunities = await fetchOpportunities();
+  const opportunities = await loadOpportunities();
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <header className="mb-8">

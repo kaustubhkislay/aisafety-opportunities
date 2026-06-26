@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { mapRecord, fetchOpportunities } from "@/lib/airtable";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { mapRecord, fetchOpportunities, loadOpportunities } from "@/lib/airtable";
 
 describe("mapRecord", () => {
   it("maps Airtable fields to the typed model", () => {
@@ -51,5 +51,37 @@ describe("fetchOpportunities", () => {
   it("throws on a non-ok response", async () => {
     const fakeFetch = async () => ({ ok: false, status: 429, json: async () => ({}) }) as unknown as Response;
     await expect(fetchOpportunities(fakeFetch as unknown as typeof fetch)).rejects.toThrow();
+  });
+});
+
+describe("loadOpportunities (build-safe wrapper)", () => {
+  afterEach(() => {
+    delete process.env.AIRTABLE_API_KEY;
+    delete process.env.AIRTABLE_BASE_ID;
+  });
+
+  it("returns [] instead of throwing when env is not configured", async () => {
+    delete process.env.AIRTABLE_API_KEY;
+    delete process.env.AIRTABLE_BASE_ID;
+    await expect(loadOpportunities()).resolves.toEqual([]);
+  });
+
+  it("returns [] when the fetch fails (e.g. non-ok / network error)", async () => {
+    process.env.AIRTABLE_API_KEY = "key";
+    process.env.AIRTABLE_BASE_ID = "appX";
+    const fakeFetch = async () => ({ ok: false, status: 500, json: async () => ({}) }) as unknown as Response;
+    await expect(loadOpportunities(fakeFetch as unknown as typeof fetch)).resolves.toEqual([]);
+  });
+
+  it("returns mapped records on success", async () => {
+    process.env.AIRTABLE_API_KEY = "key";
+    process.env.AIRTABLE_BASE_ID = "appX";
+    const fakeFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ records: [{ fields: { title: "A", org: "o", type: "job" } }] }),
+    }) as unknown as Response;
+    const result = await loadOpportunities(fakeFetch as unknown as typeof fetch);
+    expect(result.map((r) => r.title)).toEqual(["A"]);
   });
 });
