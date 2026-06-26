@@ -69,6 +69,7 @@ def run_worker(
     loops = 0
     while max_loops is None or loops < max_loops:
         rows = raw_store.claim_unprocessed(batch_size)
+        progressed = False
         for row in rows:
             try:
                 process_fn(row)
@@ -79,7 +80,8 @@ def run_worker(
                 )
                 continue
             raw_store.mark_processed(row["message_id"])
-        if not rows:
+            progressed = True
+        if not rows or not progressed:
             sleep(poll_interval)
         loops += 1
 

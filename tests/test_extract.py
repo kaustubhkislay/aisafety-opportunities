@@ -61,3 +61,9 @@ def test_two_failures_raise():
     client = FakeClient(["nope", "still nope"])
     with pytest.raises(ExtractionError):
         Extractor(client, "qwen-test").extract("x")
+
+
+def test_content_none_raises():
+    client = FakeClient([None, None])
+    with pytest.raises(ExtractionError):
+        Extractor(client, "qwen-test").extract("x")

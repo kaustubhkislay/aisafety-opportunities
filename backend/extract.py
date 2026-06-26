@@ -62,6 +62,6 @@ class Extractor:
                 if opp.type not in VOCAB:
                     opp.type = "other"
                 return opp
-            except (ValidationError, ValueError, json.JSONDecodeError) as err:
+            except (ValidationError, ValueError, TypeError, json.JSONDecodeError) as err:
                 last_err = err
         raise ExtractionError(f"extraction failed after retry: {last_err}")

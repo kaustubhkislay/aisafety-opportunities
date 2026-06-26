@@ -107,3 +107,18 @@ def test_run_worker_marks_success_and_leaves_failures():
                sleep=lambda _s: None, max_loops=1)
 
     assert raw.marked == ["ok"]  # "boom" left unprocessed for retry
+
+
+def test_run_worker_sleeps_when_no_progress():
+    rows = [{"message_id": "boom"}]
+    raw = FakeRawStore([rows])
+    slept = []
+
+    def process_fn(row):
+        raise RuntimeError("provider down")
+
+    run_worker(raw, process_fn, batch_size=10, poll_interval=5,
+               sleep=lambda s: slept.append(s), max_loops=1)
+
+    assert raw.marked == []   # nothing succeeded
+    assert slept == [5]       # paced retry, not a hot-spin
