@@ -10,6 +10,10 @@ class IngestMessage(BaseModel):
     created_at: str
 
 
+class RetractMessage(BaseModel):
+    message_id: str
+
+
 class Opportunity(BaseModel):
     is_opportunity: bool
     title: str | None = None

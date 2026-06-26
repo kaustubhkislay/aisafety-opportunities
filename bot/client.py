@@ -5,6 +5,7 @@ from bot.channel_config import ChannelConfig
 from bot.config import load_config
 from bot.coordinator import Ingestor
 from bot.forwarder import Forwarder
+from bot.retraction import is_retraction_edit, is_retraction_reaction
 
 
 def build_client(config: dict) -> discord.Client:
@@ -32,6 +33,18 @@ def build_client(config: dict) -> discord.Client:
         if message.author == client.user:
             return
         await ingestor.handle_live(message)
+
+    @client.event
+    async def on_raw_reaction_add(payload):
+        # Raw event: fires even for messages not in the bot's cache.
+        if is_retraction_reaction(str(payload.emoji)):
+            await forwarder.retract(str(payload.message_id))
+
+    @client.event
+    async def on_raw_message_edit(payload):
+        content = (payload.data or {}).get("content")
+        if is_retraction_edit(content):
+            await forwarder.retract(str(payload.message_id))
 
     return client
 
