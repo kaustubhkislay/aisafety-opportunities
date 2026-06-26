@@ -6,6 +6,7 @@ dependencies = [
     "discord-py>=2.7.1",
     "fastapi>=0.138.1",
     "httpx>=0.28.1",
+    "openai>=2.44.0",
     "pydantic>=2.13.4",
     "uvicorn[standard]>=0.49.0",
 ]
