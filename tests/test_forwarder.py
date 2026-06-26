@@ -33,3 +33,19 @@ async def test_forward_posts_with_secret_header():
     assert seen["secret"] == "s3cret"
     assert seen["body"]["message_id"] == "100"
     await client.aclose()
+
+
+async def test_aclose_does_not_close_injected_client():
+    client = httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(200)))
+    forwarder = Forwarder("http://api.local", "s3cret", client=client)
+    await forwarder.aclose()
+    assert client.is_closed is False  # injected client is the caller's responsibility
+    await client.aclose()
+
+
+async def test_aclose_closes_self_created_client():
+    forwarder = Forwarder("http://api.local", "s3cret")  # no client injected
+    created = forwarder._get_client()  # forces self-creation
+    assert created.is_closed is False
+    await forwarder.aclose()
+    assert created.is_closed is True

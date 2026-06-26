@@ -21,3 +21,8 @@ class Forwarder:
             headers={"X-Ingest-Secret": self.secret},
         )
         return resp.status_code
+
+    async def aclose(self) -> None:
+        if self._owns_client and self._client is not None:
+            await self._client.aclose()
+            self._client = None
