@@ -1,10 +1,9 @@
 import discord
 
 from backend.store import RawStore
-from bot.backfill import backfill_channel
 from bot.config import load_config
+from bot.coordinator import Ingestor
 from bot.forwarder import Forwarder
-from bot.messages import message_to_payload
 
 
 def build_client(config: dict) -> discord.Client:
@@ -15,24 +14,22 @@ def build_client(config: dict) -> discord.Client:
     store = RawStore(config["raw_db_path"])
     store.init_db()
     forwarder = Forwarder(config["ingest_base_url"], config["ingest_secret"])
+    ingestor = Ingestor(store, forwarder)
 
     @client.event
     async def on_ready():
-        for guild in client.guilds:
-            for channel in guild.text_channels:
-                try:
-                    await backfill_channel(channel, store, forwarder)
-                except discord.Forbidden:
-                    continue  # not authorized to read this channel
+        channels = [
+            channel
+            for guild in client.guilds
+            for channel in guild.text_channels
+        ]
+        await ingestor.run_startup(channels)
 
     @client.event
     async def on_message(message):
         if message.author == client.user:
             return
-        payload = message_to_payload(message)
-        status = await forwarder.forward(payload)
-        if status // 100 == 2:
-            store.set_cursor(payload["channel_id"], payload["message_id"])
+        await ingestor.handle_live(message)
 
     return client
 

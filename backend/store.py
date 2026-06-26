@@ -80,6 +80,8 @@ class RawStore:
                 ON CONFLICT(channel_id)
                 DO UPDATE SET last_message_id = excluded.last_message_id,
                               updated_at = datetime('now')
+                WHERE CAST(excluded.last_message_id AS INTEGER)
+                      > CAST(cursors.last_message_id AS INTEGER)
                 """,
                 (channel_id, message_id),
             )
