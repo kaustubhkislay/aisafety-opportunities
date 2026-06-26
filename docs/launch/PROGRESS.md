@@ -26,7 +26,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T2.1 | Slice 4: daily status/expiry job + tests | auto | done | backend/status_job.py; 9 tests; suite 52 green; PR pending |
 | T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | done | bot/exclusion.py; guards live + backfill; 13 tests; suite 65; PR pending |
 | T3.2 | Slice 5: per-channel public/private config | auto | done | bot/channel_config.py; wired into client; 8 tests; suite 73; PR pending |
-| T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | pending | |
+| T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | done | bot/retraction.py + /retract + delete_by_message; worker stamps source_message_id; 11 tests; suite 84; PR pending |
 | T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | pending | |
 | T3.5 | Slice 5: Discord OAuth app + install flow | ckpt | pending | external app registration |
 | T4.1 | Slice 6: subscribe form + store + digest + unsub | auto | pending | |
@@ -44,6 +44,8 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - cheap filter requires a URL (drops email-only opps) → revisit at T3.1 / filter
 - T3/T5/T7 SDD test-coverage minors → opportunistic in the relevant slice
 - `.env.example` lists `ANTHROPIC_API_KEY` but `backend/worker.py` reads `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (OpenAI-compatible client) → reconcile env docs at T6.4 / deploy
+- Airtable schema now needs a `source_message_id` field (worker writes it; retraction finds by it) → add to the base schema at T6.1
+- retraction of an item deduped across multiple source messages only matches its latest `source_message_id` (v1 limitation; documented in `delete_by_message`)
 
 ## Log
 - 2026-06-26 — ledger created; all tasks pending.

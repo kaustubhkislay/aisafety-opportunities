@@ -22,6 +22,16 @@ class Forwarder:
         )
         return resp.status_code
 
+    async def retract(self, message_id: str) -> int:
+        """Tell the backend to delete the record for this source message."""
+        client = self._get_client()
+        resp = await client.post(
+            f"{self.base_url}/retract",
+            json={"message_id": message_id},
+            headers={"X-Ingest-Secret": self.secret},
+        )
+        return resp.status_code
+
     async def aclose(self) -> None:
         if self._owns_client and self._client is not None:
             await self._client.aclose()

@@ -24,6 +24,7 @@ def build_fields(opp, row, dedup_key: str, model_name: str) -> dict:
         "remote": bool(opp.remote),
         "source_server": row["server_id"],
         "source_channel": row["channel_id"],
+        "source_message_id": row["message_id"],
         "raw_text": row["content"],
         "date_seen": seen[:10],
         "dedup_key": dedup_key,
