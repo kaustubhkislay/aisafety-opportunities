@@ -1,23 +1,45 @@
+import logging
+
 import discord
 
 from bot.backfill import backfill_channel
+from bot.exclusion import should_exclude
 from bot.messages import message_to_payload
+
+log = logging.getLogger("ingestor")
+
+
+def _public_default(server_id: str, channel_id: str) -> str:
+    return "public"
 
 
 class Ingestor:
     """Coordinates backfill and live ingestion. Live messages that arrive
     while the initial per-channel backfill is still running are buffered so
     none are lost and no channel's cursor is advanced past un-backfilled
-    history; they are drained once backfill completes."""
+    history; they are drained once backfill completes.
 
-    def __init__(self, store, forwarder):
+    ``channel_default_fn(server_id, channel_id) -> "public" | "private"`` supplies
+    each channel's privacy default for edge exclusion (T3.2 wires real config;
+    default is public)."""
+
+    def __init__(self, store, forwarder, channel_default_fn=_public_default):
         self.store = store
         self.forwarder = forwarder
+        self.channel_default_fn = channel_default_fn
         self._ready = False
         self._buffer = []
 
     async def _forward(self, message) -> None:
         payload = message_to_payload(message)
+        default = self.channel_default_fn(payload["server_id"], payload["channel_id"])
+        excluded, reason = should_exclude(payload["content"], default)
+        if excluded:
+            log.info(
+                "edge-excluded message %s in channel %s (%s); not transmitted",
+                payload["message_id"], payload["channel_id"], reason,
+            )
+            return
         status = await self.forwarder.forward(payload)
         if status // 100 == 2:
             self.store.set_cursor(payload["channel_id"], payload["message_id"])
@@ -30,8 +52,13 @@ class Ingestor:
 
     async def run_startup(self, channels) -> None:
         for channel in channels:
+            guild = getattr(channel, "guild", None)
+            server_id = str(guild.id) if guild is not None else ""
+            default = self.channel_default_fn(server_id, str(channel.id))
             try:
-                await backfill_channel(channel, self.store, self.forwarder)
+                await backfill_channel(
+                    channel, self.store, self.forwarder, channel_default=default
+                )
             except discord.Forbidden:
                 continue  # not authorized to read this channel
         # Drain live messages buffered during backfill. Loop because new
