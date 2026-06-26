@@ -17,7 +17,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 
 | # | Task | Tag | Status | Note |
 |---|------|-----|--------|------|
-| T0.1 | CI: pytest (backend+bot) + vitest (web) on PRs | auto | pending | |
+| T0.1 | CI: pytest (backend+bot) + vitest (web) on PRs | auto | done | ci.yml added; YAML validated; awaiting PR+merge |
 | T0.2 | Branch sequencing: merge #1 → rebase #2 → #3 | auto | pending | |
 | T1.1 | Review + merge PR #1 (bot ingestion) | ckpt | pending | human review gate |
 | T1.2 | Review + merge PR #2 (extraction pipeline) | ckpt | pending | rebase on main first |
@@ -45,3 +45,4 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 
 ## Log
 - 2026-06-26 — ledger created; all tasks pending.
+- 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Next: CKPT — open PR for `docs/launch-plan` → main and merge after CI green.

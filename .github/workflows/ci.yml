@@ -1,0 +1,47 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Python 3.12
+        run: uv python install 3.12
+      - name: Detect backend code
+        id: guard
+        run: |
+          if [ -f pyproject.toml ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Tests
+        if: steps.guard.outputs.run == 'true'
+        run: uv run --group dev pytest -q
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect web app
+        id: guard
+        run: |
+          if [ -f package.json ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.run == 'true'
+        with:
+          node-version: 20
+      - name: Install
+        if: steps.guard.outputs.run == 'true'
+        run: npm ci
+      - name: Test
+        if: steps.guard.outputs.run == 'true'
+        run: npm test
+      - name: Build
+        if: steps.guard.outputs.run == 'true'
+        run: npm run build
