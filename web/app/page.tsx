@@ -1,5 +1,6 @@
 import { loadOpportunities } from "@/lib/airtable";
 import { OpportunityList } from "@/app/opportunity-list";
+import { SubscribeForm } from "@/app/subscribe-form";
 
 export const revalidate = 3600;
 
@@ -13,6 +14,9 @@ export default async function Home() {
           Jobs, fellowships, grants, events, and courses in AI safety.{" "}
           <a href="/feed.xml" className="underline">RSS</a>
         </p>
+        <div className="mt-4">
+          <SubscribeForm />
+        </div>
       </header>
       <OpportunityList opportunities={opportunities} nowISO={new Date().toISOString()} />
       <footer className="mt-12 text-sm text-gray-500">

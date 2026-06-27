@@ -18,6 +18,10 @@ class PurgeServer(BaseModel):
     server_id: str
 
 
+class SubscribeRequest(BaseModel):
+    email: str
+
+
 class Opportunity(BaseModel):
     is_opportunity: bool
     title: str | None = None
