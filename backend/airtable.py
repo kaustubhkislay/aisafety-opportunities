@@ -26,6 +26,13 @@ class AirtableStore:
         self.backend.delete(existing["id"])
         return True
 
+    def delete_by_server(self, server_id: str) -> int:
+        """Delete every record sourced from a server (uninstall purge). Returns count."""
+        records = self.backend.find_by_server(server_id)
+        for record in records:
+            self.backend.delete(record["id"])
+        return len(records)
+
 
 class PyairtableBackend:
     def __init__(self, table):
@@ -44,6 +51,11 @@ class PyairtableBackend:
         from pyairtable.formulas import match
 
         return self.table.first(formula=match({"source_message_id": message_id}))
+
+    def find_by_server(self, server_id):
+        from pyairtable.formulas import match
+
+        return self.table.all(formula=match({"source_server": server_id}))
 
     def create(self, fields) -> str:
         return self.table.create(fields)["id"]

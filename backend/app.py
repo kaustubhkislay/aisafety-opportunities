@@ -2,7 +2,8 @@ import os
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 
-from backend.models import IngestMessage, RetractMessage
+from backend.models import IngestMessage, PurgeServer, RetractMessage
+from backend.purge import purge_server
 from backend.store import RawStore
 
 app = FastAPI(title="aisafety-opportunities ingestion")
@@ -46,3 +47,20 @@ def retract(
     # even if retraction arrives before extraction.
     _store.mark_processed(msg.message_id)
     return {"deleted": deleted, "message_id": msg.message_id}
+
+
+@app.post("/purge")
+def purge(
+    body: PurgeServer,
+    _: None = Depends(require_secret),
+    store=Depends(get_airtable_store),
+) -> dict:
+    counts = purge_server(store, _store, body.server_id)
+    return {"server_id": body.server_id, **counts}
+
+
+@app.get("/ingested/{server_id}")
+def ingested(server_id: str, _: None = Depends(require_secret)) -> dict:
+    # Owner-visibility: what has been ingested from this server.
+    messages = _store.get_messages_by_server(server_id)
+    return {"server_id": server_id, "count": len(messages), "messages": messages}

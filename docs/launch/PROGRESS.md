@@ -27,7 +27,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | done | bot/exclusion.py; guards live + backfill; 13 tests; suite 65; PR pending |
 | T3.2 | Slice 5: per-channel public/private config | auto | done | bot/channel_config.py; wired into client; 8 tests; suite 73; PR pending |
 | T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | done | bot/retraction.py + /retract + delete_by_message; worker stamps source_message_id; 11 tests; suite 84; PR pending |
-| T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | pending | |
+| T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | done | backend/purge.py + /purge + /ingested; on_guild_remove; 8 tests; suite 92; PR pending |
 | T3.5 | Slice 5: Discord OAuth app + install flow | ckpt | pending | external app registration |
 | T4.1 | Slice 6: subscribe form + store + digest + unsub | auto | pending | |
 | T4.2 | Slice 6: email sender account + API key | ckpt | pending | Resend/Buttondown |
@@ -52,4 +52,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Merged via PR #4.
 - 2026-06-26 — M1 complete: PRs #1/#3/#4 merged by owner. CI caught two issues: PR #2 (extraction) was orphaned (stacked-PR merge dropped it) and the site build crashed with no Airtable env. Both fixed in PR #5 (recover extraction + `loadOpportunities` build fallback); 43 backend + 27 web tests green. Merged.
 - 2026-06-26 — T2.1 done: `backend/status_job.py` — `derive_status` (mirrors web `deriveStatus`) + `run_status_job` (updates only changed records). Added `PyairtableBackend.all()`. 9 tests; full suite 52 green. Merged via PR #6.
-- 2026-06-26 — T3.1 done: `bot/exclusion.py` `should_exclude` (tag vocabulary, word-boundary match, private-default channels). Wired into BOTH transmit paths — `Ingestor._forward` (live) and `backfill_channel` — so excluded messages never transmit (and are logged). `Ingestor` + backfill take a `channel_default` source (default public; T3.2 wires real config). 13 tests; full suite 65 green. Next: T3.2 per-channel config.
+- 2026-06-26 — T3.1 done: `bot/exclusion.py` `should_exclude` (tag vocabulary, word-boundary match, private-default channels). Wired into BOTH transmit paths — `Ingestor._forward` (live) and `backfill_channel` — so excluded messages never transmit (and are logged). 13 tests; suite 65. Merged via PR #7.
+- 2026-06-26 — T3.2 done: `bot/channel_config.py` `ChannelConfig` (per-channel public/private + fail-closed fallback, JSON-loaded); wired into client as the real `channel_default_fn`. 8 tests; suite 73. Merged via PR #8.
+- 2026-06-26 — T3.3 done: retraction. `bot/retraction.py` detectors + `Forwarder.retract`; secured `/retract` deletes the Airtable record (`delete_by_message`) and tombstones the raw row; worker stamps `source_message_id`. 11 tests; suite 84. Merged via PR #9.
+- 2026-06-26 — T3.4 done: uninstall purge + owner view. `backend/purge.py` `purge_server` clears both stores; `AirtableStore.delete_by_server` + `RawStore.{get_messages_by_server,delete_server}`; secured `/purge` + `/ingested/{server_id}`; `Forwarder.purge` wired to `on_guild_remove`. 8 tests; full suite 92 green. **M3 autonomous work complete** — only T3.5 (Discord OAuth, ckpt) remains.
