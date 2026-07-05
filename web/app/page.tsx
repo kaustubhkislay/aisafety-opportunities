@@ -21,6 +21,8 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={new Date().toISOString()} />
       <footer className="mt-12 text-sm text-gray-500">
         <a href="/privacy" className="underline">Privacy</a>
+        {" · "}
+        <a href="/terms" className="underline">Terms</a>
       </footer>
     </main>
   );
