@@ -1,15 +1,26 @@
 import os
 
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import HTMLResponse
 
-from backend.models import IngestMessage, PurgeServer, RetractMessage
+from backend.digest import is_valid_email, verify_token
+from backend.models import (
+    IngestMessage,
+    PurgeServer,
+    RetractMessage,
+    SubscribeRequest,
+)
 from backend.purge import purge_server
 from backend.store import RawStore
+from backend.subscribers import SubscriberStore
 
 app = FastAPI(title="aisafety-opportunities ingestion")
 
 _store = RawStore(os.environ.get("RAW_DB_PATH", "raw.db"))
 _store.init_db()
+
+_subscribers = SubscriberStore(os.environ.get("SUBSCRIBER_DB_PATH", "subscribers.db"))
+_subscribers.init_db()
 
 
 def require_secret(x_ingest_secret: str | None = Header(default=None)) -> None:
@@ -64,3 +75,22 @@ def ingested(server_id: str, _: None = Depends(require_secret)) -> dict:
     # Owner-visibility: what has been ingested from this server.
     messages = _store.get_messages_by_server(server_id)
     return {"server_id": server_id, "count": len(messages), "messages": messages}
+
+
+@app.post("/subscribe")
+def subscribe(body: SubscribeRequest) -> dict:
+    # Public endpoint (the website's subscribe form posts here).
+    if not is_valid_email(body.email):
+        raise HTTPException(status_code=400, detail="invalid email")
+    added = _subscribers.add(body.email)
+    return {"subscribed": added, "email": body.email.strip().lower()}
+
+
+@app.get("/unsubscribe", response_class=HTMLResponse)
+def unsubscribe(token: str) -> HTMLResponse:
+    secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
+    email = verify_token(token, secret) if secret else None
+    if email is None:
+        return HTMLResponse("<p>Invalid or expired unsubscribe link.</p>", status_code=400)
+    _subscribers.remove(email)
+    return HTMLResponse(f"<p>{email} has been unsubscribed.</p>")

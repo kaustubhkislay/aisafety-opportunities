@@ -1,0 +1,140 @@
+from datetime import date
+
+from backend.digest import (
+    build_digest,
+    is_valid_email,
+    make_token,
+    run_digest,
+    verify_token,
+)
+from backend.subscribers import SubscriberStore
+
+TODAY = date(2026, 6, 27)
+
+
+# --- email validation ------------------------------------------------------
+
+def test_valid_emails():
+    assert is_valid_email("a@b.com")
+    assert is_valid_email("first.last+tag@sub.example.org")
+
+
+def test_invalid_emails():
+    for bad in ["", "nope", "a@b", "a@@b.com", "a b@c.com", "@b.com"]:
+        assert is_valid_email(bad) is False, bad
+
+
+# --- unsubscribe token (HMAC) ---------------------------------------------
+
+def test_token_roundtrips():
+    token = make_token("a@x.com", "secret")
+    assert verify_token(token, "secret") == "a@x.com"
+
+
+def test_token_rejected_with_wrong_secret():
+    token = make_token("a@x.com", "secret")
+    assert verify_token(token, "other") is None
+
+
+def test_token_rejected_when_tampered():
+    assert verify_token("not-a-real-token", "secret") is None
+    token = make_token("a@x.com", "secret")
+    assert verify_token(token + "x", "secret") is None
+
+
+# --- digest body -----------------------------------------------------------
+
+def test_build_digest_lists_items_and_unsub_link():
+    opps = [{
+        "title": "ML Fellow", "org": "Redwood", "type": "fellowship",
+        "deadline": "2026-08-01", "link": "https://x.org/apply", "date_seen": "2026-06-26",
+    }]
+    digest = build_digest(opps, "https://site/unsubscribe?token=abc")
+    assert digest["subject"]
+    assert "ML Fellow" in digest["html"]
+    assert "ML Fellow" in digest["text"]
+    assert "https://x.org/apply" in digest["html"]
+    assert "unsubscribe?token=abc" in digest["html"]
+    assert "unsubscribe?token=abc" in digest["text"]
+
+
+def test_build_digest_escapes_html():
+    opps = [{"title": "A & B <x>", "org": "o", "type": "job", "deadline": None,
+             "link": None, "date_seen": "2026-06-26"}]
+    digest = build_digest(opps, "https://site/u")
+    assert "&amp;" in digest["html"] and "&lt;x&gt;" in digest["html"]
+
+
+def test_build_digest_empty_is_still_valid():
+    digest = build_digest([], "https://site/u")
+    assert digest["text"]
+    assert digest["html"]
+
+
+# --- run_digest ------------------------------------------------------------
+
+def _opp(title, deadline, date_seen="2026-06-26"):
+    return {"title": title, "org": "o", "type": "job", "deadline": deadline,
+            "link": "https://x.org", "date_seen": date_seen}
+
+
+def test_run_digest_sends_each_subscriber_with_their_token(tmp_path):
+    subs = SubscriberStore(str(tmp_path / "subs.db"))
+    subs.init_db()
+    subs.add("a@x.com")
+    subs.add("b@x.com")
+    sent = []
+
+    def sender(email, subject, html, text):
+        sent.append((email, html))
+
+    count = run_digest(
+        subs, [_opp("Open Fellowship", "2026-08-01")], sender,
+        secret="s", unsubscribe_base="https://site/unsubscribe", today=TODAY,
+    )
+
+    assert count == 2
+    assert {email for email, _ in sent} == {"a@x.com", "b@x.com"}
+    # each email carries that subscriber's own unsubscribe token
+    for email, html in sent:
+        assert make_token(email, "s") in html
+
+
+def test_run_digest_excludes_expired_opportunities(tmp_path):
+    subs = SubscriberStore(str(tmp_path / "subs.db"))
+    subs.init_db()
+    subs.add("a@x.com")
+    sent = []
+
+    def sender(email, subject, html, text):
+        sent.append(html)
+
+    run_digest(
+        subs,
+        [_opp("Past", "2026-06-01"), _opp("Future", "2026-08-01")],
+        sender, secret="s", unsubscribe_base="https://site/u", today=TODAY,
+    )
+
+    assert "Future" in sent[0]
+    assert "Past" not in sent[0]
+
+
+def test_run_digest_filters_by_since(tmp_path):
+    subs = SubscriberStore(str(tmp_path / "subs.db"))
+    subs.init_db()
+    subs.add("a@x.com")
+    sent = []
+
+    def sender(email, subject, html, text):
+        sent.append(html)
+
+    run_digest(
+        subs,
+        [_opp("Old", "2026-08-01", date_seen="2026-06-20"),
+         _opp("New", "2026-08-01", date_seen="2026-06-26")],
+        sender, secret="s", unsubscribe_base="https://site/u", today=TODAY,
+        since="2026-06-25",
+    )
+
+    assert "New" in sent[0]
+    assert "Old" not in sent[0]
