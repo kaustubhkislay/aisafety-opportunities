@@ -23,13 +23,13 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T1.2 | Review + merge PR #2 (extraction pipeline) | ckpt | done | PR #2 orphaned; recovered+merged via PR #5 |
 | T1.3 | Review + merge PR #3 (public website) | ckpt | done | merged |
 | T0.3 | Fix: env-resilient site build (loadOpportunities) | auto | done | unplanned; CI fallout; PR #5 |
-| T2.1 | Slice 4: daily status/expiry job + tests | auto | done | backend/status_job.py; 9 tests; suite 52 green; PR pending |
-| T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | done | bot/exclusion.py; guards live + backfill; 13 tests; suite 65; PR pending |
-| T3.2 | Slice 5: per-channel public/private config | auto | done | bot/channel_config.py; wired into client; 8 tests; suite 73; PR pending |
-| T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | done | bot/retraction.py + /retract + delete_by_message; worker stamps source_message_id; 11 tests; suite 84; PR pending |
-| T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | done | backend/purge.py + /purge + /ingested; on_guild_remove; 8 tests; suite 92; PR pending |
+| T2.1 | Slice 4: daily status/expiry job + tests | auto | done | backend/status_job.py; 9 tests; suite 52 green; merged via PR #6 |
+| T3.1 | Slice 5: edge exclusion (tags + private-default) | auto | done | bot/exclusion.py; guards live + backfill; 13 tests; suite 65; merged via PR #7 |
+| T3.2 | Slice 5: per-channel public/private config | auto | done | bot/channel_config.py; wired into client; 8 tests; suite 73; merged via PR #8 |
+| T3.3 | Slice 5: retraction (lock-emoji / [private] edit) | auto | done | bot/retraction.py + /retract + delete_by_message; worker stamps source_message_id; 11 tests; suite 84; merged via PR #9 |
+| T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | done | backend/purge.py + /purge + /ingested; on_guild_remove; 8 tests; suite 92; merged via PR #10 |
 | T3.5 | Slice 5: Discord OAuth app + install flow | ckpt | pending | external app registration |
-| T4.1 | Slice 6: subscribe form + store + digest + unsub | auto | done | backend subscribers+digest (HMAC unsub) + /subscribe,/unsubscribe; web form+proxy; 23 tests; suite 111; PR pending |
+| T4.1 | Slice 6: subscribe form + store + digest + unsub | auto | done | backend subscribers+digest (HMAC unsub) + /subscribe,/unsubscribe; web form+proxy; 23 tests; suite 111; merged via PR #11 |
 | T4.2 | Slice 6: email sender account + API key | ckpt | pending | Resend/Buttondown |
 | T5.1 | Slice 7: privacy + terms pages, footer wiring | auto | pending | |
 | T6.1 | Airtable base schema + revalidate automation | ckpt | pending | |
@@ -56,4 +56,5 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - 2026-06-26 — T3.2 done: `bot/channel_config.py` `ChannelConfig` (per-channel public/private + fail-closed fallback, JSON-loaded); wired into client as the real `channel_default_fn`. 8 tests; suite 73. Merged via PR #8.
 - 2026-06-26 — T3.3 done: retraction. `bot/retraction.py` detectors + `Forwarder.retract`; secured `/retract` deletes the Airtable record (`delete_by_message`) and tombstones the raw row; worker stamps `source_message_id`. 11 tests; suite 84. Merged via PR #9.
 - 2026-06-26 — T3.4 done: uninstall purge + owner view. `backend/purge.py` `purge_server` clears both stores; `AirtableStore.delete_by_server` + `RawStore.{get_messages_by_server,delete_server}`; secured `/purge` + `/ingested/{server_id}`; `Forwarder.purge` wired to `on_guild_remove`. 8 tests; full suite 92 green. Merged via PR #10. **M3 autonomous work complete.**
+- 2026-07-05 — Phase 0 cleanup: PR #11 merged (T4.1 complete on main); stale "PR pending" notes updated to their merged PR numbers; `*.db` gitignored (local `subscribers.db`/`raw.db` never commit). Next: T5.1 legal pages.
 - 2026-06-27 — T4.1 done: email digest. `backend/subscribers.py` (SQLite, idempotent add/remove/reactivate) + `backend/digest.py` (email validation, HMAC unsubscribe tokens, `build_digest`, `run_digest` filtering expired + `since`, runnable `main()` with placeholder sender). Public `POST /subscribe` + token `GET /unsubscribe`. Web: `lib/subscribe.ts` + `/api/subscribe` proxy (backend URL stays server-side) + `SubscribeForm` on the page. 23 tests (backend 19 + web 4); backend suite 111, web 31 green. Real email sender deferred to T4.2 (ckpt). Next: T5.1 legal pages.
