@@ -7,6 +7,7 @@ from backend.dedup import stable_key
 from backend.extract import Extractor
 from backend.filter import is_candidate
 from backend.linksafety import is_safe
+from backend.spend import SpendCapExceeded, SpendGuard
 from backend.store import RawStore
 
 log = logging.getLogger("worker")
@@ -41,10 +42,17 @@ def process_message(
     filter_fn=is_candidate,
     link_check=is_safe,
     key_fn=stable_key,
+    spend_guard=None,
 ) -> str:
     content = row["content"]
     if not filter_fn(content):
         return "skipped_filter"
+    if spend_guard is not None and not spend_guard.try_acquire():
+        log.warning(
+            "LLM spend cap hit; leaving %s unprocessed until next period",
+            row.get("message_id"),
+        )
+        raise SpendCapExceeded(row.get("message_id"))
     opp = extractor.extract(content)  # raises on hard failure -> caller leaves unprocessed
     if opp is None:
         return "not_opportunity"
@@ -101,9 +109,15 @@ def main() -> None:
     model = os.environ["OPENAI_MODEL"]
     extractor = Extractor(client, model)
     store = AirtableStore(backend_from_env())
+    spend_guard = SpendGuard.from_env(os.environ)
+    if spend_guard is None:
+        log.warning("LLM_DAILY_CALL_CAP unset — extraction spend is uncapped")
 
     def process_fn(row):
-        return process_message(row, extractor=extractor, store=store, model_name=model)
+        return process_message(
+            row, extractor=extractor, store=store, model_name=model,
+            spend_guard=spend_guard,
+        )
 
     run_worker(
         raw_store,
