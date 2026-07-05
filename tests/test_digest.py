@@ -138,3 +138,56 @@ def test_run_digest_filters_by_since(tmp_path):
 
     assert "New" in sent[0]
     assert "Old" not in sent[0]
+
+
+# --- Resend sender (T4.2) ---------------------------------------------------
+
+from backend.digest import make_resend_sender, resend_sender_from_env
+
+
+class FakeResponse:
+    def __init__(self, status_code, body=""):
+        self.status_code = status_code
+        self.text = body
+
+
+def test_resend_sender_posts_email():
+    calls = []
+
+    def post(url, *, headers, json, timeout):
+        calls.append((url, headers, json, timeout))
+        return FakeResponse(200)
+
+    sender = make_resend_sender("re_key", "digest@aisopportunities.com", post=post)
+    sender("a@x.com", "Subject", "<p>hi</p>", "hi")
+
+    url, headers, payload, _timeout = calls[0]
+    assert url == "https://api.resend.com/emails"
+    assert headers["Authorization"] == "Bearer re_key"
+    assert payload == {
+        "from": "AI Safety Opportunities <digest@aisopportunities.com>",
+        "to": ["a@x.com"],
+        "subject": "Subject",
+        "html": "<p>hi</p>",
+        "text": "hi",
+    }
+
+
+def test_resend_sender_raises_on_error_response():
+    import pytest
+
+    sender = make_resend_sender(
+        "re_key", "d@x.com", post=lambda url, **kw: FakeResponse(422, "invalid from"),
+    )
+    with pytest.raises(RuntimeError, match="422"):
+        sender("a@x.com", "S", "<p></p>", "t")
+
+
+def test_resend_sender_from_env_requires_both_vars():
+    assert resend_sender_from_env({}) is None
+    assert resend_sender_from_env({"RESEND_API_KEY": "re_k"}) is None
+    assert resend_sender_from_env({"DIGEST_FROM_ADDRESS": "d@x.com"}) is None
+    sender = resend_sender_from_env(
+        {"RESEND_API_KEY": "re_k", "DIGEST_FROM_ADDRESS": "d@x.com"},
+    )
+    assert callable(sender)
