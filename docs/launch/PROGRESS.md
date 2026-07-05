@@ -30,9 +30,9 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T3.4 | Slice 5: uninstall purge + owner-visibility view | auto | done | backend/purge.py + /purge + /ingested; on_guild_remove; 8 tests; suite 92; merged via PR #10 |
 | T3.5 | Slice 5: Discord OAuth app + install flow | ckpt | pending | external app registration |
 | T4.1 | Slice 6: subscribe form + store + digest + unsub | auto | done | backend subscribers+digest (HMAC unsub) + /subscribe,/unsubscribe; web form+proxy; 23 tests; suite 111; merged via PR #11 |
-| T4.2 | Slice 6: email sender account + API key | ckpt | pending | Resend/Buttondown |
+| T4.2 | Slice 6: email sender account + API key | ckpt | done | Resend + aisopportunities.com domain verified (owner); make_resend_sender wired into digest main(); real test send OK |
 | T5.1 | Slice 7: privacy + terms pages, footer wiring | auto | done | web/app/{privacy,terms}/page.tsx; footer + metadata + web README fixed; 9 tests; web 40, backend 111 green |
-| T6.1 | Airtable base schema + revalidate automation | ckpt | pending | |
+| T6.1 | Airtable base schema + revalidate automation | ckpt | in-progress | base + 15-field schema verified live (incl. source_message_id, select vocabs match code); revalidate automation awaits Vercel URL (T6.3) |
 | T6.2 | Backend host (Railway/Fly) + env + cron | ckpt | pending | |
 | T6.3 | Vercel deploy + env vars | ckpt | pending | |
 | T6.4 | LLM spend cap (config + enforcement) | auto | done | backend/spend.py SpendGuard (LLM_DAILY_CALL_CAP, per-UTC-day) wired into worker; env docs reconciled to OPENAI_*; 7 tests; backend 118 green |
@@ -44,10 +44,11 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - ~~cheap filter requires a URL (drops email-only opps) → revisit at T3.1 / filter~~ **resolved in Phase 1 hardening**
 - T3/T5/T7 SDD test-coverage minors → opportunistic in the relevant slice
 - ~~`.env.example` lists `ANTHROPIC_API_KEY` but `backend/worker.py` reads `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (OpenAI-compatible client) → reconcile env docs at T6.4 / deploy~~ **resolved in T6.4**
-- Airtable schema now needs a `source_message_id` field (worker writes it; retraction finds by it) → add to the base schema at T6.1
+- ~~Airtable schema now needs a `source_message_id` field (worker writes it; retraction finds by it) → add to the base schema at T6.1~~ **resolved 2026-07-05: field added to the live base**
 - retraction of an item deduped across multiple source messages only matches its latest `source_message_id` (v1 limitation; documented in `delete_by_message`)
 
 ## Log
+- 2026-07-05 — T4.2 done: Resend sender. Owner verified aisopportunities.com in Resend (DKIM/SPF/MX via Squarespace DNS) + API key. `make_resend_sender` (httpx, raises on non-2xx) + `resend_sender_from_env` (`RESEND_API_KEY`+`DIGEST_FROM_ADDRESS`, falls back to log sender with a warning); `digest.main()` auto-wires it. 3 tests (TDD); backend 130 green; real test email sent+delivered OK. Also: T6.1 base audited live — schema matches the worker contract; `source_message_id` field added; only the revalidate automation remains (blocked on T6.3).
 - 2026-07-05 — Phase 1 hardening batch (TDD): filter accepts email-only opportunities (URL *or* email + keyword); linksafety gains allowlist (subdomain-aware, big application platforms) + injectable domain-age hook (`domain_age_days_fn`/`min_domain_age_days`, young → withheld "new-domain", unknown age fails open); missing channels.json now logs a WARNING (fail-open is loud); web: `loadOpportunitiesResult` exposes a `degraded` flag and the home page shows an unavailability notice instead of a silent empty list; feed.xml uses an obvious `.invalid` placeholder + console.error when SITE_URL unset (no more example.com); RSS items get `pubDate` from date_seen and escape single quotes; new coverage for /api/subscribe and /feed.xml routes; scaffold.test.ts deleted. Backend 127 + web 51 green; lint clean. **Phase 1 (all [auto] code work) complete — remaining tasks are [ckpt] provisioning + T6.5 smoke.**
 - 2026-06-26 — ledger created; all tasks pending.
 - 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Merged via PR #4.

@@ -144,13 +144,58 @@ def run_digest(
 
 
 def _log_sender(email: str, subject: str, html: str, text: str) -> None:
-    # Placeholder sender — T4.2 swaps in the real Resend/Buttondown sender.
+    # Fallback sender when no email provider is configured (dev / dry runs).
     log.info("would send digest to %s: %s", email, subject)
 
 
-def main(sender=_log_sender) -> None:
+# --- Resend sender (T4.2) ---------------------------------------------------
+
+def make_resend_sender(api_key: str, from_address: str, post=None):
+    """Return a ``sender(email, subject, html, text)`` backed by the Resend API."""
+    if post is None:
+        import httpx
+
+        post = httpx.post
+
+    def sender(email: str, subject: str, html: str, text: str) -> None:
+        res = post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "from": f"AI Safety Opportunities <{from_address}>",
+                "to": [email],
+                "subject": subject,
+                "html": html,
+                "text": text,
+            },
+            timeout=30,
+        )
+        if not 200 <= res.status_code < 300:
+            raise RuntimeError(f"resend send failed ({res.status_code}): {res.text}")
+
+    return sender
+
+
+def resend_sender_from_env(env):
+    """Build the Resend sender from ``RESEND_API_KEY`` + ``DIGEST_FROM_ADDRESS``;
+    ``None`` when either is missing (caller falls back to the log sender)."""
+    api_key = env.get("RESEND_API_KEY")
+    from_address = env.get("DIGEST_FROM_ADDRESS")
+    if not api_key or not from_address:
+        return None
+    return make_resend_sender(api_key, from_address)
+
+
+def main(sender=None) -> None:
     """Scheduled entrypoint (cron, wired in M6). Reads opportunities + subscribers
-    and sends the digest. The real email sender is injected in T4.2."""
+    and sends the digest via Resend when configured, else the log sender."""
+    if sender is None:
+        sender = resend_sender_from_env(os.environ)
+        if sender is None:
+            log.warning(
+                "RESEND_API_KEY / DIGEST_FROM_ADDRESS not set — digest will only be logged"
+            )
+            sender = _log_sender
     logging.basicConfig(level=logging.INFO)
     from backend.airtable import AirtableStore, backend_from_env
 
