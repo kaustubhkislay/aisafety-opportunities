@@ -31,3 +31,18 @@ describe("toRss", () => {
     expect(xml).not.toContain("A & B <C>");
   });
 });
+
+describe("toRss hardening", () => {
+  it("emits pubDate from dateSeen when present", () => {
+    const xml = toRss([opp({ title: "X", dateSeen: "2026-06-25" })], "https://site.example");
+    expect(xml).toContain("<pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>");
+  });
+  it("omits pubDate when dateSeen is missing", () => {
+    const xml = toRss([opp({ title: "X", dateSeen: null })], "https://site.example");
+    expect(xml).not.toContain("<pubDate>");
+  });
+  it("escapes single quotes", () => {
+    const xml = toRss([opp({ title: "O'Brien's role" })], "https://site.example");
+    expect(xml).toContain("O&#39;Brien&#39;s role");
+  });
+});

@@ -35,7 +35,11 @@ class ChannelConfig:
             with open(path) as f:
                 data = json.load(f)
         except FileNotFoundError:
-            log.info("no channel config at %s; defaulting all channels public", path)
+            # Loud on purpose: missing config fails OPEN (everything public),
+            # the opposite failure mode from the private-channel guarantee.
+            log.warning(
+                "no channel config at %s — ALL channels default to public", path
+            )
             return cls()
 
         fallback = data.get("fallback", "public")
