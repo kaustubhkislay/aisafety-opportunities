@@ -40,14 +40,15 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 
 ## Folded-in fixes (attach to the noted milestone)
 - deadline ISO validation → T2.1 / extraction
-- link-safety brand-new-domain + allowlist heuristics → T3.x / pipeline hardening
-- cheap filter requires a URL (drops email-only opps) → revisit at T3.1 / filter
+- ~~link-safety brand-new-domain + allowlist heuristics → T3.x / pipeline hardening~~ **resolved in Phase 1 hardening**
+- ~~cheap filter requires a URL (drops email-only opps) → revisit at T3.1 / filter~~ **resolved in Phase 1 hardening**
 - T3/T5/T7 SDD test-coverage minors → opportunistic in the relevant slice
 - ~~`.env.example` lists `ANTHROPIC_API_KEY` but `backend/worker.py` reads `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (OpenAI-compatible client) → reconcile env docs at T6.4 / deploy~~ **resolved in T6.4**
 - Airtable schema now needs a `source_message_id` field (worker writes it; retraction finds by it) → add to the base schema at T6.1
 - retraction of an item deduped across multiple source messages only matches its latest `source_message_id` (v1 limitation; documented in `delete_by_message`)
 
 ## Log
+- 2026-07-05 — Phase 1 hardening batch (TDD): filter accepts email-only opportunities (URL *or* email + keyword); linksafety gains allowlist (subdomain-aware, big application platforms) + injectable domain-age hook (`domain_age_days_fn`/`min_domain_age_days`, young → withheld "new-domain", unknown age fails open); missing channels.json now logs a WARNING (fail-open is loud); web: `loadOpportunitiesResult` exposes a `degraded` flag and the home page shows an unavailability notice instead of a silent empty list; feed.xml uses an obvious `.invalid` placeholder + console.error when SITE_URL unset (no more example.com); RSS items get `pubDate` from date_seen and escape single quotes; new coverage for /api/subscribe and /feed.xml routes; scaffold.test.ts deleted. Backend 127 + web 51 green; lint clean. **Phase 1 (all [auto] code work) complete — remaining tasks are [ckpt] provisioning + T6.5 smoke.**
 - 2026-06-26 — ledger created; all tasks pending.
 - 2026-06-26 — T0.1 done: `.github/workflows/ci.yml` (backend pytest + web vitest/build, per-job guards). Merged via PR #4.
 - 2026-06-26 — M1 complete: PRs #1/#3/#4 merged by owner. CI caught two issues: PR #2 (extraction) was orphaned (stacked-PR merge dropped it) and the site build crashed with no Airtable env. Both fixed in PR #5 (recover extraction + `loadOpportunities` build fallback); 43 backend + 27 web tests green. Merged.

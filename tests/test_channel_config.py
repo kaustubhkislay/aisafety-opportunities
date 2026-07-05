@@ -50,3 +50,11 @@ def test_from_json_ignores_invalid_values(tmp_path):
     path.write_text(json.dumps({"channels": {"s1:c1": "bogus"}}))
     cfg = ChannelConfig.from_json(str(path))
     assert cfg.channel_default("s1", "c1") == "public"  # invalid -> falls back
+
+
+def test_from_json_missing_file_warns(tmp_path, caplog):
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="channel_config"):
+        ChannelConfig.from_json(str(tmp_path / "absent.json"))
+    assert any("public" in r.message for r in caplog.records)

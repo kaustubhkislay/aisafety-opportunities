@@ -5,7 +5,15 @@ function esc(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function pubDate(dateSeen: string | null): string {
+  if (!dateSeen) return "";
+  const d = new Date(dateSeen);
+  if (Number.isNaN(d.getTime())) return "";
+  return `<pubDate>${d.toUTCString()}</pubDate>`;
 }
 
 export function toRss(items: Opportunity[], siteUrl: string): string {
@@ -19,7 +27,7 @@ export function toRss(items: Opportunity[], siteUrl: string): string {
           .join(" · "),
       );
       const guid = esc(o.dedupKey || link);
-      return `    <item><title>${title}</title><link>${esc(link)}</link><guid isPermaLink="false">${guid}</guid><description>${desc}</description></item>`;
+      return `    <item><title>${title}</title><link>${esc(link)}</link><guid isPermaLink="false">${guid}</guid>${pubDate(o.dateSeen)}<description>${desc}</description></item>`;
     })
     .join("\n");
 
