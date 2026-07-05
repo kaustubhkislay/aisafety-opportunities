@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# web — public site
 
-## Getting Started
+The public board for [aisafety-opportunities](../README.md): a Next.js (App Router) app that
+renders curated opportunities from Airtable, with client-side filtering, an RSS feed, an email
+digest subscribe form, and privacy/terms pages.
 
-First, run the development server:
+## How it works
+
+- `app/page.tsx` — home page; statically rendered with ISR (`revalidate = 3600`), loads
+  opportunities from Airtable at build/revalidate time.
+- `app/feed.xml/route.ts` — RSS 2.0 feed (same ISR window).
+- `app/api/subscribe/route.ts` — proxies digest signups to the backend (backend URL stays
+  server-side).
+- `app/api/revalidate/route.ts` — secret-guarded on-demand revalidation, hit by an Airtable
+  automation on record change.
+- `app/privacy` / `app/terms` — legal pages; copy must track actually-built behavior.
+- `lib/` — Airtable fetch/mapping, filtering, status derivation, RSS building, subscribe
+  validation. All unit-tested.
+
+If Airtable is unreachable at build time, `loadOpportunities` degrades to an empty list so the
+build never crashes; ISR keeps serving the last good page.
+
+## Environment
+
+| Var | Purpose |
+|-----|---------|
+| `AIRTABLE_API_KEY` / `AIRTABLE_BASE_ID` / `AIRTABLE_TABLE_NAME` | Opportunity source (table name defaults to `Opportunities`) |
+| `SITE_URL` | Canonical site URL, used by the RSS feed |
+| `BACKEND_URL` | Ingestion backend, for the subscribe proxy |
+| `REVALIDATE_SECRET` | Shared secret for `POST /api/revalidate` |
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+npm test        # vitest
+npm run dev     # http://localhost:3000
+npm run build   # production build (works without Airtable env)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Note for agents: read `AGENTS.md` first — this Next.js version has breaking changes vs. common
+knowledge; consult the vendored docs in `node_modules/next/dist/docs/`.
