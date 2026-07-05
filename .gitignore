@@ -20,6 +20,9 @@ __pycache__/
 venv/
 *.egg-info/
 
+# Local SQLite state — never commit
+*.db
+
 # OS / editor
 .DS_Store
 .idea/
