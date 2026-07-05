@@ -35,7 +35,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 | T6.1 | Airtable base schema + revalidate automation | ckpt | pending | |
 | T6.2 | Backend host (Railway/Fly) + env + cron | ckpt | pending | |
 | T6.3 | Vercel deploy + env vars | ckpt | pending | |
-| T6.4 | LLM spend cap (config + enforcement) | auto | pending | |
+| T6.4 | LLM spend cap (config + enforcement) | auto | done | backend/spend.py SpendGuard (LLM_DAILY_CALL_CAP, per-UTC-day) wired into worker; env docs reconciled to OPENAI_*; 7 tests; backend 118 green |
 | T6.5 | End-to-end smoke on a controlled server | ckpt | pending | the demo is the pitch |
 
 ## Folded-in fixes (attach to the noted milestone)
@@ -43,7 +43,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - link-safety brand-new-domain + allowlist heuristics → T3.x / pipeline hardening
 - cheap filter requires a URL (drops email-only opps) → revisit at T3.1 / filter
 - T3/T5/T7 SDD test-coverage minors → opportunistic in the relevant slice
-- `.env.example` lists `ANTHROPIC_API_KEY` but `backend/worker.py` reads `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (OpenAI-compatible client) → reconcile env docs at T6.4 / deploy
+- ~~`.env.example` lists `ANTHROPIC_API_KEY` but `backend/worker.py` reads `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (OpenAI-compatible client) → reconcile env docs at T6.4 / deploy~~ **resolved in T6.4**
 - Airtable schema now needs a `source_message_id` field (worker writes it; retraction finds by it) → add to the base schema at T6.1
 - retraction of an item deduped across multiple source messages only matches its latest `source_message_id` (v1 limitation; documented in `delete_by_message`)
 
@@ -56,6 +56,7 @@ Plan:   `docs/launch/2026-06-26-launch-plan.md`
 - 2026-06-26 — T3.2 done: `bot/channel_config.py` `ChannelConfig` (per-channel public/private + fail-closed fallback, JSON-loaded); wired into client as the real `channel_default_fn`. 8 tests; suite 73. Merged via PR #8.
 - 2026-06-26 — T3.3 done: retraction. `bot/retraction.py` detectors + `Forwarder.retract`; secured `/retract` deletes the Airtable record (`delete_by_message`) and tombstones the raw row; worker stamps `source_message_id`. 11 tests; suite 84. Merged via PR #9.
 - 2026-06-26 — T3.4 done: uninstall purge + owner view. `backend/purge.py` `purge_server` clears both stores; `AirtableStore.delete_by_server` + `RawStore.{get_messages_by_server,delete_server}`; secured `/purge` + `/ingested/{server_id}`; `Forwarder.purge` wired to `on_guild_remove`. 8 tests; full suite 92 green. Merged via PR #10. **M3 autonomous work complete.**
+- 2026-07-05 — T6.4 done: LLM spend cap. `backend/spend.py` `SpendGuard` — per-UTC-day call counter from `LLM_DAILY_CALL_CAP` (unset/0 = uncapped, worker warns); `try_acquire` resets on period change; charged in `process_message` after the cheap filter and before the LLM call, so filtered rows cost nothing; over cap raises `SpendCapExceeded` → row left unprocessed, retries next period. Env docs reconciled: `.env.example` now documents `OPENAI_BASE_URL`/`OPENAI_API_KEY`/`OPENAI_MODEL` (folded-in fix resolved). 7 tests (TDD); backend 118 green. Phase 1 remaining: hardening batch.
 - 2026-07-05 — T5.1 done: legal pages. `web/app/privacy/page.tsx` (edge-exclusion tag vocabulary, curated-fields-only/no raw text, retraction/purge/owner visibility, subscriber-email + unsubscribe, takedown contact) + `web/app/terms/page.tsx` (as-is, acceptable use). Footer now links Privacy · Terms (dead `/privacy` link fixed); layout metadata replaced ("Create Next App" → real title/description); `web/README.md` rewritten from create-next-app boilerplate. 9 new tests (TDD); web 40 + backend 111 green; lint clean; `/privacy` + `/terms` prerender static. Next: T6.4 spend cap + env reconcile.
 - 2026-07-05 — Phase 0 cleanup: PR #11 merged (T4.1 complete on main); stale "PR pending" notes updated to their merged PR numbers; `*.db` gitignored (local `subscribers.db`/`raw.db` never commit). Next: T5.1 legal pages.
 - 2026-06-27 — T4.1 done: email digest. `backend/subscribers.py` (SQLite, idempotent add/remove/reactivate) + `backend/digest.py` (email validation, HMAC unsubscribe tokens, `build_digest`, `run_digest` filtering expired + `since`, runnable `main()` with placeholder sender). Public `POST /subscribe` + token `GET /unsubscribe`. Web: `lib/subscribe.ts` + `/api/subscribe` proxy (backend URL stays server-side) + `SubscribeForm` on the page. 23 tests (backend 19 + web 4); backend suite 111, web 31 green. Real email sender deferred to T4.2 (ckpt). Next: T5.1 legal pages.
