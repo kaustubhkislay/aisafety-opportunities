@@ -27,3 +27,6 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+
+# Vercel CLI link (project/org ids; not for git)
+.vercel/
