@@ -7,6 +7,7 @@ from backend.dedup import stable_key
 from backend.extract import Extractor
 from backend.filter import is_candidate
 from backend.linksafety import is_safe
+from backend.revalidate import make_revalidator, maybe_revalidate
 from backend.spend import SpendCapExceeded, SpendGuard
 from backend.store import RawStore
 
@@ -112,12 +113,17 @@ def main() -> None:
     spend_guard = SpendGuard.from_env(os.environ)
     if spend_guard is None:
         log.warning("LLM_DAILY_CALL_CAP unset — extraction spend is uncapped")
+    revalidator = make_revalidator(os.environ)
+    if revalidator is None:
+        log.warning("SITE_URL/REVALIDATE_SECRET unset — site refresh is hourly ISR only")
 
     def process_fn(row):
-        return process_message(
+        status = process_message(
             row, extractor=extractor, store=store, model_name=model,
             spend_guard=spend_guard,
         )
+        maybe_revalidate(status, revalidator)
+        return status
 
     run_worker(
         raw_store,

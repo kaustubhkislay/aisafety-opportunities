@@ -61,8 +61,13 @@ def run_status_job(backend, today: date) -> dict[str, int]:
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     from backend.airtable import backend_from_env
+    from backend.revalidate import make_revalidator
 
-    run_status_job(backend_from_env(), date.today())
+    counts = run_status_job(backend_from_env(), date.today())
+    if counts.get("changed"):
+        revalidator = make_revalidator(os.environ)
+        if revalidator is not None:
+            revalidator()
 
 
 if __name__ == "__main__":

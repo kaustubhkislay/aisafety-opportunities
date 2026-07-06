@@ -44,3 +44,26 @@ def test_ingest_rejects_bad_secret(tmp_path, monkeypatch):
     client = _client(tmp_path, monkeypatch)
     resp = client.post("/ingest", json=PAYLOAD, headers={"X-Ingest-Secret": "wrong"})
     assert resp.status_code == 401
+
+
+def test_retract_pings_revalidate(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    pings = []
+    monkeypatch.setattr(app_module, "_revalidator", lambda: pings.append(1) or True)
+
+    class FakeStore:
+        def delete_by_message(self, message_id):
+            return 1
+
+    app_module.app.dependency_overrides[app_module.get_airtable_store] = FakeStore
+    try:
+        resp = client.post(
+            "/retract", json={"message_id": "m1"},
+            headers={"X-Ingest-Secret": "s3cret"},
+        )
+    finally:
+        app_module.app.dependency_overrides.pop(app_module.get_airtable_store, None)
+    assert resp.status_code == 200
+    assert pings == [1]  # site refreshed so the retraction is visible immediately
