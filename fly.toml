@@ -1,0 +1,37 @@
+# Fly.io config for the always-on backend (API + worker + Discord bot + cron).
+# One machine, one volume: the SQLite stores are shared state between processes.
+app = "aisopportunities-backend"
+primary_region = "iad"
+
+[build]
+  dockerfile = "deploy/Dockerfile"
+
+[env]
+  RAW_DB_PATH = "/data/raw.db"
+  SUBSCRIBER_DB_PATH = "/data/subscribers.db"
+  CHANNEL_CONFIG_PATH = "/data/channels.json"
+  # Bot and API share the machine; forward loopback, not over the internet.
+  INGEST_BASE_URL = "http://127.0.0.1:8080"
+
+[mounts]
+  source = "data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # The Discord bot must hold its gateway connection: never scale to zero.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

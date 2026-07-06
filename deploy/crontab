@@ -1,0 +1,3 @@
+# Times in UTC. status: daily; digest: Mondays.
+0 9 * * * cd /app && python -m backend.status_job
+0 15 * * 1 cd /app && python -m backend.digest
