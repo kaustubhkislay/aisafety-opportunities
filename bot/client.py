@@ -1,3 +1,5 @@
+import logging
+
 import discord
 
 from backend.store import RawStore
@@ -55,9 +57,12 @@ def build_client(config: dict) -> discord.Client:
 
 
 def main() -> None:
+    # INFO so edge-exclusion drops are always visible in production logs —
+    # the design invariant is "no silent drop without a log line".
+    logging.basicConfig(level=logging.INFO)
     config = load_config()
     client = build_client(config)
-    client.run(config["discord_token"])
+    client.run(config["discord_token"], log_handler=None)
 
 
 if __name__ == "__main__":
