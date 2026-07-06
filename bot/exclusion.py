@@ -13,13 +13,17 @@ import re
 # Documented exclusion vocabulary. Authors add any of these to opt a message out.
 _TAGS = ("[private]", "school-specific", "internal", "do-not-share")
 
-# Match each tag as a whole token (so "internal" does not fire inside
-# "internationally"). Hyphens count as part of a token so "do-not-share" matches
-# as a unit; the bracketed literal is matched verbatim.
-_PATTERNS = [
-    (re.compile(r"(?<![\w-])" + re.escape(tag) + r"(?![\w-])", re.IGNORECASE), tag)
-    for tag in _TAGS
-]
+# Bare-word tags match as whole tokens (so "internal" does not fire inside
+# "internationally"); hyphens count as part of a token so "do-not-share"
+# matches as a unit. Bracketed tags match verbatim anywhere — the brackets are
+# the boundary ("[private]Fellowship…" must still be excluded; live T6.5 bug).
+def _tag_pattern(tag: str) -> re.Pattern:
+    if tag.startswith("["):
+        return re.compile(re.escape(tag), re.IGNORECASE)
+    return re.compile(r"(?<![\w-])" + re.escape(tag) + r"(?![\w-])", re.IGNORECASE)
+
+
+_PATTERNS = [(_tag_pattern(tag), tag) for tag in _TAGS]
 
 
 def should_exclude(content: str | None, channel_default: str) -> tuple[bool, str]:
