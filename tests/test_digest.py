@@ -191,3 +191,37 @@ def test_resend_sender_from_env_requires_both_vars():
         {"RESEND_API_KEY": "re_k", "DIGEST_FROM_ADDRESS": "d@x.com"},
     )
     assert callable(sender)
+
+
+def test_skip_when_empty_sends_nothing(tmp_path):
+    subs = SubscriberStore(str(tmp_path / "subs.db"))
+    subs.init_db()
+    subs.add("a@x.com")
+    sent = []
+
+    count = run_digest(
+        subs,
+        [_opp("Old", "2026-08-01", date_seen="2026-06-20")],
+        lambda *a: sent.append(a),
+        secret="s", unsubscribe_base="https://site/u", today=TODAY,
+        since="2026-07-05", skip_when_empty=True,
+    )
+    assert count == 0
+    assert sent == []  # nothing new yesterday -> no email at all
+
+
+def test_skip_when_empty_still_sends_when_new_items_exist(tmp_path):
+    subs = SubscriberStore(str(tmp_path / "subs.db"))
+    subs.init_db()
+    subs.add("a@x.com")
+    sent = []
+
+    count = run_digest(
+        subs,
+        [_opp("Fresh", "2026-08-01", date_seen="2026-07-05")],
+        lambda *a: sent.append(a),
+        secret="s", unsubscribe_base="https://site/u", today=TODAY,
+        since="2026-07-05", skip_when_empty=True,
+    )
+    assert count == 1
+    assert "Fresh" in sent[0][2]
