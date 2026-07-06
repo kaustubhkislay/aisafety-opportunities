@@ -32,7 +32,7 @@ See [`docs/design-spec.md`](docs/design-spec.md) for the full design.
 
 ## Status
 
-Pre-implementation. Design approved 2026-06-25. Discord-first; Slack support is a later adapter on the same backend.
+**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord-first; Slack support is a later adapter on the same backend. Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
 
 ## Privacy
 
