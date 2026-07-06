@@ -8,10 +8,15 @@ from bot.messages import message_to_payload
 log = logging.getLogger("backfill")
 
 
-async def backfill_channel(channel, store, forwarder, channel_default: str = "public") -> int:
+async def backfill_channel(
+    channel, store, forwarder, channel_default: str = "public", oldest_snowflake=None,
+) -> int:
     channel_id = str(channel.id)
     last_id = store.get_cursor(channel_id)
-    after = discord.Object(id=int(last_id)) if last_id else None
+    # Start from the cursor or the age cutoff, whichever is more recent —
+    # messages older than the allowed window never ingest.
+    after_id = max(int(last_id) if last_id else 0, oldest_snowflake or 0)
+    after = discord.Object(id=after_id) if after_id else None
 
     count = 0
     async for message in channel.history(after=after):

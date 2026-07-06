@@ -83,3 +83,32 @@ async def test_backfill_holds_cursor_on_forward_failure(tmp_path):
 
     assert count == 1  # only the first forwarded successfully
     assert store.get_cursor("10") == "101"  # cursor held at last success
+
+
+async def test_backfill_never_reaches_past_age_cutoff(tmp_path):
+    # Channel history must start at the age cutoff even when the cursor is
+    # older (or absent): items older than the window never ingest.
+    store = RawStore(str(tmp_path / "raw.db"))
+    store.init_db()
+    store.set_cursor("10", "500")  # ancient cursor, far below the cutoff
+
+    captured = {}
+
+    class Channel:
+        id = 10
+
+        def history(self, after=None):
+            captured["after"] = after
+
+            async def _gen():
+                return
+                yield  # pragma: no cover
+
+            return _gen()
+
+    class NoForward:
+        async def forward(self, payload):
+            raise AssertionError("no messages to forward")
+
+    await backfill_channel(Channel(), store, NoForward(), oldest_snowflake=1_000_000)
+    assert captured["after"].id == 1_000_000  # cutoff wins over the older cursor
