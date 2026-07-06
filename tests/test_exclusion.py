@@ -149,3 +149,14 @@ def test_bracket_tag_after_other_bracket_tag_is_excluded():
 def test_bare_word_tags_still_respect_word_boundaries():
     excluded, _ = should_exclude("we operate internationally", "public")
     assert excluded is False
+
+
+def test_uni_reserved_tag_is_excluded():
+    excluded, reason = should_exclude("[uni-reserved] internship, apply via portal", "public")
+    assert excluded is True
+    assert reason == "tag:[uni-reserved]"
+
+
+def test_uni_reserved_glued_is_excluded():
+    excluded, _ = should_exclude("[uni-reserved]Fellowship open", "public")
+    assert excluded is True

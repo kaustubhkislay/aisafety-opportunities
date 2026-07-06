@@ -13,7 +13,7 @@ describe("privacy page", () => {
   it("documents the edge-exclusion tag vocabulary", () => {
     render(<PrivacyPage />);
     const body = document.body.textContent ?? "";
-    for (const tag of ["[private]", "school-specific", "internal", "do-not-share"]) {
+    for (const tag of ["[private]", "[uni-reserved]", "school-specific", "internal", "do-not-share"]) {
       expect(body).toContain(tag);
     }
   });

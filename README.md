@@ -16,7 +16,7 @@ Installed Discord bot ──► backend ──► raw store ──► filter + P
 ```
 
 - The installed bot is a **thin client** — it forwards messages and runs the privacy/exclusion check locally. All extraction logic lives in the backend.
-- Messages marked `private` / `school-specific` / `internal` / `do-not-share`, or posted in a channel an owner sets private-by-default, are **never transmitted**.
+- Messages marked `[private]` / `[uni-reserved]` / `school-specific` / `internal` / `do-not-share`, or posted in a channel an owner sets private-by-default, are **never transmitted**.
 - An LLM extracts genuine opportunities, strips personal contact info, withholds suspicious links, and dedupes across communities.
 
 ## Repo layout

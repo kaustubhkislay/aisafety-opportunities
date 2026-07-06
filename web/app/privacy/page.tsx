@@ -23,8 +23,8 @@ export default function PrivacyPage() {
         <p className="mt-2">
           Our Discord bot reads only the channels a server owner explicitly authorizes. Before
           anything is transmitted, the bot runs an exclusion check <em>inside your server</em>:
-          messages containing any of the tags <code>[private]</code>, <code>school-specific</code>,{" "}
-          <code>internal</code>, or <code>do-not-share</code>, and all messages in channels the
+          messages containing any of the tags <code>[private]</code>, <code>[uni-reserved]</code>,{" "}
+          <code>school-specific</code>, <code>internal</code>, or <code>do-not-share</code>, and all messages in channels the
           owner marks private-by-default, are dropped on the spot and never sent to us.
         </p>
       </section>

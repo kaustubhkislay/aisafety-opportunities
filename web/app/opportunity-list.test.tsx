@@ -53,3 +53,20 @@ describe("server attribution", () => {
     expect(screen.queryByText(/found in/)).not.toBeInTheDocument();
   });
 });
+
+describe("community filter", () => {
+  it("offers the communities present and filters by selection", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "From WAISI", sourceServers: ["WAISI"], dedupKey: "a" }),
+          opp({ title: "From Hub", sourceServers: ["AI Safety Hub"], dedupKey: "b" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    await userEvent.selectOptions(screen.getByLabelText("Filter by community"), "WAISI");
+    expect(screen.getByText("From WAISI")).toBeInTheDocument();
+    expect(screen.queryByText("From Hub")).not.toBeInTheDocument();
+  });
+});

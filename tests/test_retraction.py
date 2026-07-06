@@ -132,3 +132,8 @@ def test_retract_deletes_record_and_tombstones_raw_message(tmp_path, monkeypatch
     assert resp.json() == {"deleted": True, "message_id": "100"}
     # tombstoned: the worker will never (re)extract it
     assert mod._store.claim_unprocessed(10) == []
+
+
+def test_uni_reserved_edit_is_retraction():
+    assert is_retraction_edit("now [uni-reserved] please") is True
+    assert is_retraction_edit("[UNI-RESERVED] caps too") is True
