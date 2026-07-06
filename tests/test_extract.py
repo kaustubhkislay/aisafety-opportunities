@@ -96,3 +96,20 @@ def test_null_bools_are_coerced():
     client = FakeClient(['{"is_opportunity": true, "title": "X", "remote": null}'])
     opp = Extractor(client, "qwen-test").extract("x")
     assert opp is not None and opp.remote is False
+
+
+def test_prompt_includes_todays_date():
+    # The model cannot resolve "July 22nd" to the right year without knowing
+    # the current date (live bug: resolved to 2024 -> instantly expired).
+    captured = {}
+
+    class _Capture:
+        def create(self, **kwargs):
+            captured["system"] = kwargs["messages"][0]["content"]
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content=OPP_JSON))]
+            )
+
+    client = SimpleNamespace(chat=SimpleNamespace(completions=_Capture()))
+    Extractor(client, "m", today_fn=lambda: "2026-07-06").extract("x")
+    assert "2026-07-06" in captured["system"]

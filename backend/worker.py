@@ -7,6 +7,7 @@ from backend.dedup import stable_key
 from backend.extract import Extractor
 from backend.filter import is_candidate
 from backend.linksafety import is_safe
+from backend.enrich import resolve_past_deadline
 from backend.revalidate import make_revalidator, maybe_revalidate
 from backend.spend import SpendCapExceeded, SpendGuard
 from backend.store import RawStore
@@ -69,6 +70,9 @@ def process_message(
     # page and repopulate the date (fail-soft; empty stays empty).
     if opp.deadline is None and opp.link and deadline_enricher is not None:
         opp.deadline = deadline_enricher(opp.link)
+    seen = (row.get("ingested_at") or row.get("created_at") or "")[:10]
+    if opp.deadline and seen:
+        opp.deadline = resolve_past_deadline(opp.deadline, seen)
     # Retraction race: a /retract may tombstone this message while extraction
     # was in flight (found live in T6.5). Re-check just before publishing so a
     # retraction always wins.

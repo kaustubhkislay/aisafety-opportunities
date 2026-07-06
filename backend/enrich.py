@@ -52,10 +52,13 @@ class DeadlineFinder:
         self.model = model
 
     def find(self, text: str) -> str | None:
+        from datetime import date
+
+        system = f"Today's date is {date.today().isoformat()}. " + DEADLINE_PROMPT
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": DEADLINE_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": text[:20_000]},
             ],
             response_format={"type": "json_object"},
@@ -65,6 +68,25 @@ class DeadlineFinder:
             return json.loads(resp.choices[0].message.content).get("deadline")
         except (ValueError, TypeError, AttributeError):
             return None
+
+
+def resolve_past_deadline(deadline, reference: str, grace_days: int = 90):
+    """Repair year-resolution errors: a freshly-extracted deadline far in the
+    past (beyond ``grace_days`` before ``reference``) almost certainly means
+    the model guessed the wrong year for a year-less date — bump it forward.
+    Recently-passed deadlines (legit expiries) are left alone."""
+    from datetime import date, timedelta
+
+    try:
+        due = date.fromisoformat((deadline or "").strip()[:10])
+        ref = date.fromisoformat(reference.strip()[:10])
+    except (ValueError, AttributeError):
+        return deadline
+    bumps = 0
+    while due < ref - timedelta(days=grace_days) and bumps < 3:
+        due = due.replace(year=due.year + 1)
+        bumps += 1
+    return due.isoformat() if bumps else deadline
 
 
 def enrich_deadline(url: str, *, page_text_fn, find_fn, spend_guard=None) -> str | None:
