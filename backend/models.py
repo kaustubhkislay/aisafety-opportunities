@@ -3,6 +3,7 @@ from pydantic import BaseModel, field_validator
 
 class IngestMessage(BaseModel):
     server_id: str
+    server_name: str = ""
     channel_id: str
     message_id: str
     author_id: str

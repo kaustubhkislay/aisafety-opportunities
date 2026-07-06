@@ -122,3 +122,11 @@ def test_run_worker_sleeps_when_no_progress():
 
     assert raw.marked == []   # nothing succeeded
     assert slept == [5]       # paced retry, not a hot-spin
+
+
+def test_build_fields_uses_server_name_for_attribution():
+    opp = _opp(title="X")
+    fields = build_fields(opp, dict(ROW, server_name="AI Safety Hub"), "k", "m")
+    assert fields["source_servers"] == "AI Safety Hub"
+    fields = build_fields(opp, ROW, "k", "m")  # legacy row without server_name
+    assert fields["source_servers"] == "srv1"

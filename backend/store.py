@@ -2,6 +2,7 @@ import sqlite3
 
 _MESSAGE_COLUMNS = [
     "server_id",
+    "server_name",
     "channel_id",
     "message_id",
     "author_id",
@@ -50,13 +51,17 @@ class RawStore:
             ]
             if "processed_at" not in existing:
                 conn.execute("ALTER TABLE messages ADD COLUMN processed_at TEXT")
+            if "server_name" not in existing:
+                conn.execute(
+                    "ALTER TABLE messages ADD COLUMN server_name TEXT NOT NULL DEFAULT ''"
+                )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_messages_processed_at "
                 "ON messages(processed_at)"
             )
 
     def insert_message(self, msg: dict) -> bool:
-        values = [msg[col] for col in _MESSAGE_COLUMNS]
+        values = [msg.get(col, "") for col in _MESSAGE_COLUMNS]
         placeholders = ", ".join("?" for _ in _MESSAGE_COLUMNS)
         columns = ", ".join(_MESSAGE_COLUMNS)
         with self._connect() as conn:

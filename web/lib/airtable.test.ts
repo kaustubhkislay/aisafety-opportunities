@@ -114,3 +114,13 @@ describe("loadOpportunitiesResult (degraded-state flag)", () => {
     expect(result.degraded).toBe(false);
   });
 });
+
+describe("source_servers attribution", () => {
+  it("parses the comma-joined community list", () => {
+    const opp = mapRecord({ title: "X", source_servers: "AI Safety Hub, WAISI" });
+    expect(opp.sourceServers).toEqual(["AI Safety Hub", "WAISI"]);
+  });
+  it("defaults to an empty list", () => {
+    expect(mapRecord({ title: "X" }).sourceServers).toEqual([]);
+  });
+});

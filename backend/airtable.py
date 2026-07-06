@@ -1,6 +1,20 @@
 import os
 
 
+def _union_servers(existing: str | None, incoming: str | None) -> str:
+    """Comma-joined union of community names, first-seen order preserved.
+
+    An opportunity deduped across communities keeps every server it was found
+    in ("found in" attribution on the site)."""
+    out: list[str] = []
+    for blob in (existing, incoming):
+        for name in (blob or "").split(","):
+            name = name.strip()
+            if name and name not in out:
+                out.append(name)
+    return ", ".join(out)
+
+
 class AirtableStore:
     def __init__(self, backend):
         self.backend = backend
@@ -8,7 +22,12 @@ class AirtableStore:
     def upsert(self, fields: dict, dedup_key: str) -> tuple[str, str]:
         existing = self.backend.find_by_dedup_key(dedup_key)
         if existing is not None:
-            self.backend.update(existing["id"], fields)
+            merged = dict(fields)
+            merged["source_servers"] = _union_servers(
+                existing["fields"].get("source_servers"),
+                fields.get("source_servers"),
+            )
+            self.backend.update(existing["id"], merged)
             return existing["id"], "updated"
         record_id = self.backend.create(fields)
         return record_id, "created"
