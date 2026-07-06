@@ -10,7 +10,12 @@ class Forwarder:
 
     def _get_client(self) -> httpx.AsyncClient:
         if self._client is None:
-            self._client = httpx.AsyncClient()
+            # Generous read timeout: /purge deletes a server's Airtable records
+            # one API call at a time, which can take minutes for a large server
+            # (httpx's 5s default made the bot time out mid-purge in T6.5).
+            self._client = httpx.AsyncClient(
+                timeout=httpx.Timeout(180.0, connect=10.0)
+            )
         return self._client
 
     async def forward(self, payload: dict) -> int:
