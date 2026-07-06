@@ -7,7 +7,7 @@ const NOW = new Date("2026-06-26T12:00:00Z");
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: null, link: null, location: null,
-    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "",
+    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [],
     ...p,
   };
 }
@@ -39,5 +39,27 @@ describe("filterAndSort", () => {
       opp({ title: "Later", deadline: "2026-09-01" }),
     ];
     expect(filterAndSort(items, {}, NOW).map((o) => o.title)).toEqual(["Soon", "Later", "NoDeadlineB", "NoDeadlineA"]);
+  });
+});
+
+describe("category searching across fields", () => {
+  it("matches location, type, and community, not just title/org", () => {
+    const items = [
+      opp({ title: "A", location: "Berkeley, CA", dedupKey: "1" }),
+      opp({ title: "B", type: "grant", dedupKey: "2" }),
+      opp({ title: "C", sourceServers: ["WAISI"], dedupKey: "3" }),
+    ];
+    expect(filterAndSort(items, { text: "berkeley" }, NOW).map((o) => o.title)).toEqual(["A"]);
+    expect(filterAndSort(items, { text: "grant" }, NOW).map((o) => o.title)).toEqual(["B"]);
+    expect(filterAndSort(items, { text: "waisi" }, NOW).map((o) => o.title)).toEqual(["C"]);
+  });
+
+  it("filters by community", () => {
+    const items = [
+      opp({ title: "A", sourceServers: ["WAISI"], dedupKey: "1" }),
+      opp({ title: "B", sourceServers: ["AI Safety Hub"], dedupKey: "2" }),
+    ];
+    const out = filterAndSort(items, { servers: ["WAISI"] }, NOW);
+    expect(out.map((o) => o.title)).toEqual(["A"]);
   });
 });

@@ -26,18 +26,24 @@ export function OpportunityList({
   const now = new Date(nowISO);
   const [text, setText] = useState("");
   const [type, setType] = useState("");
+  const [server, setServer] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showPast, setShowPast] = useState(false);
+
+  const servers = useMemo(
+    () => Array.from(new Set(opportunities.flatMap((o) => o.sourceServers))).sort(),
+    [opportunities],
+  );
 
   const visible = useMemo(
     () =>
       filterAndSort(
         opportunities,
-        { text, types: type ? [type] : [], remoteOnly, showPast },
+        { text, types: type ? [type] : [], servers: server ? [server] : [], remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, type, remoteOnly, showPast, nowISO],
+    [opportunities, text, type, server, remoteOnly, showPast, nowISO],
   );
 
   return (
@@ -61,6 +67,19 @@ export function OpportunityList({
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
+        {servers.length > 0 && (
+          <select
+            value={server}
+            onChange={(e) => setServer(e.target.value)}
+            className="rounded border px-3 py-2"
+            aria-label="Filter by community"
+          >
+            <option value="">All communities</option>
+            {servers.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        )}
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
           Remote only

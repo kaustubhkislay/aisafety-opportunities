@@ -46,6 +46,7 @@ def process_message(
     key_fn=stable_key,
     spend_guard=None,
     is_tombstoned=None,
+    deadline_enricher=None,
 ) -> str:
     content = row["content"]
     if not filter_fn(content):
@@ -64,6 +65,10 @@ def process_message(
         if not safe:
             log.warning("withheld %s (%s): %s", row.get("message_id"), reason, opp.link)
             return "withheld"
+    # No deadline in the message itself? Best-effort: read the application
+    # page and repopulate the date (fail-soft; empty stays empty).
+    if opp.deadline is None and opp.link and deadline_enricher is not None:
+        opp.deadline = deadline_enricher(opp.link)
     # Retraction race: a /retract may tombstone this message while extraction
     # was in flight (found live in T6.5). Re-check just before publishing so a
     # retraction always wins.
@@ -125,10 +130,20 @@ def main() -> None:
     if revalidator is None:
         log.warning("SITE_URL/REVALIDATE_SECRET unset — site refresh is hourly ISR only")
 
+    from backend.enrich import DeadlineFinder, enrich_deadline, page_text
+
+    finder = DeadlineFinder(client, model)
+
+    def deadline_enricher(url):
+        return enrich_deadline(
+            url, page_text_fn=page_text, find_fn=finder.find, spend_guard=spend_guard,
+        )
+
     def process_fn(row):
         status = process_message(
             row, extractor=extractor, store=store, model_name=model,
             spend_guard=spend_guard, is_tombstoned=raw_store.is_processed,
+            deadline_enricher=deadline_enricher,
         )
         maybe_revalidate(status, revalidator)
         return status

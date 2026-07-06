@@ -130,3 +130,24 @@ def test_build_fields_uses_server_name_for_attribution():
     assert fields["source_servers"] == "AI Safety Hub"
     fields = build_fields(opp, ROW, "k", "m")  # legacy row without server_name
     assert fields["source_servers"] == "srv1"
+
+
+def test_missing_deadline_is_enriched_from_link():
+    opp = _opp(title="X", org="O", link="https://org.example/apply", deadline=None)
+    store = RecordingStore()
+    status = process_message(
+        ROW, extractor=StubExtractor(opp), store=store, model_name="m",
+        deadline_enricher=lambda url: "2026-07-22",
+    )
+    assert status == "created"
+    assert store.upserts[0][0]["deadline"] == "2026-07-22"
+
+
+def test_present_deadline_skips_enrichment():
+    opp = _opp(title="X", link="https://org.example/apply", deadline="2026-08-01")
+    calls = []
+    process_message(
+        ROW, extractor=StubExtractor(opp), store=RecordingStore(), model_name="m",
+        deadline_enricher=lambda url: calls.append(url) or "2026-01-01",
+    )
+    assert calls == []

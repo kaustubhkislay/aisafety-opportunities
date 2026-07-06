@@ -11,7 +11,7 @@ and `bot.backfill.backfill_channel`) call it before forwarding and log every dro
 import re
 
 # Documented exclusion vocabulary. Authors add any of these to opt a message out.
-_TAGS = ("[private]", "school-specific", "internal", "do-not-share")
+_TAGS = ("[private]", "[uni-reserved]", "school-specific", "internal", "do-not-share")
 
 # Bare-word tags match as whole tokens (so "internal" does not fire inside
 # "internationally"); hyphens count as part of a token so "do-not-share"
