@@ -151,3 +151,13 @@ def test_present_deadline_skips_enrichment():
         deadline_enricher=lambda url: calls.append(url) or "2026-01-01",
     )
     assert calls == []
+
+
+def test_worker_repairs_year_resolution_errors():
+    opp = _opp(title="X", link="https://org.example/a", deadline="2024-07-22")
+    store = RecordingStore()
+    process_message(
+        dict(ROW, ingested_at="2026-07-06 00:00:00"),
+        extractor=StubExtractor(opp), store=store, model_name="m",
+    )
+    assert store.upserts[0][0]["deadline"] == "2026-07-22"

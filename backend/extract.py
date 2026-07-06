@@ -40,15 +40,23 @@ class ExtractionError(Exception):
 
 
 class Extractor:
-    def __init__(self, client, model: str):
+    def __init__(self, client, model: str, today_fn=None):
         self.client = client
         self.model = model
+        if today_fn is None:
+            from datetime import date
+
+            today_fn = lambda: date.today().isoformat()  # noqa: E731
+        self.today_fn = today_fn
 
     def _call(self, content: str) -> str:
+        # The model has no clock: without today's date it resolves year-less
+        # deadlines ("July 22nd") into the past (live bug).
+        system = f"Today's date is {self.today_fn()}. " + SYSTEM_PROMPT
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": content},
             ],
             response_format={"type": "json_object"},

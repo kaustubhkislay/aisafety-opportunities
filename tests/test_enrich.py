@@ -61,3 +61,16 @@ def test_enrich_respects_spend_guard():
     )
     assert deadline is None
     assert calls == []  # no LLM call once the cap is spent
+
+
+def test_resolve_past_deadline_bumps_year_resolution_errors():
+    from backend.enrich import resolve_past_deadline
+
+    # Year-resolution error: far in the past relative to when we saw it.
+    assert resolve_past_deadline("2024-07-22", "2026-07-06") == "2026-07-22"
+    # Genuinely recent expiry stays put (grace window).
+    assert resolve_past_deadline("2026-06-30", "2026-07-06") == "2026-06-30"
+    # Future deadlines untouched; garbage passes through unchanged.
+    assert resolve_past_deadline("2026-08-01", "2026-07-06") == "2026-08-01"
+    assert resolve_past_deadline(None, "2026-07-06") is None
+    assert resolve_past_deadline("soon", "2026-07-06") == "soon"
