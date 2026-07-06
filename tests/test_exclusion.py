@@ -131,3 +131,21 @@ async def test_backfill_private_default_channel_transmits_nothing(tmp_path):
     await backfill_channel(channel, store, forwarder, channel_default="private")
 
     assert forwarder.forwarded == []
+
+
+def test_bracket_tag_glued_to_text_is_excluded():
+    # Live T6.5 failure: "[private]Horizon..." transmitted because the
+    # word-boundary guard rejected a letter right after the bracket.
+    excluded, reason = should_exclude("[private]Horizon Fellowship, apply now", "public")
+    assert excluded is True
+    assert reason == "tag:[private]"
+
+
+def test_bracket_tag_after_other_bracket_tag_is_excluded():
+    excluded, _ = should_exclude("[test][private]Fellowship open", "public")
+    assert excluded is True
+
+
+def test_bare_word_tags_still_respect_word_boundaries():
+    excluded, _ = should_exclude("we operate internationally", "public")
+    assert excluded is False
