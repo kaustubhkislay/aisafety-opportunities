@@ -1,0 +1,29 @@
+# Auto-deploy the backend to Fly.io on every merge to main that touches it.
+# The website deploys itself via Vercel's GitHub integration; this closes the
+# same loop for the backend so no manual/local deploy step exists anywhere.
+name: fly-deploy
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "bot/**"
+      - "deploy/**"
+      - "fly.toml"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/fly-deploy.yml"
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --ha=false --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
