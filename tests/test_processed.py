@@ -34,3 +34,13 @@ def test_claim_respects_limit(tmp_path):
         store.insert_message(_msg(mid))
 
     assert len(store.claim_unprocessed(2)) == 2
+
+
+def test_is_processed_reflects_tombstone(tmp_path):
+    store = RawStore(str(tmp_path / "raw.db"))
+    store.init_db()
+    store.insert_message(_msg("m1"))
+    assert store.is_processed("m1") is False
+    store.mark_processed("m1")
+    assert store.is_processed("m1") is True
+    assert store.is_processed("unknown") is False

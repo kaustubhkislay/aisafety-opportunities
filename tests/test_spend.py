@@ -141,3 +141,19 @@ def test_worker_leaves_row_unprocessed_when_cap_hit():
 
     assert raw.marked == ["a"]  # "b" left unprocessed — retries next period
     assert extractor.calls == 1
+
+
+def test_inflight_retraction_blocks_publish(caplog):
+    # A retraction that lands while extraction is in flight must win: the
+    # worker re-checks the tombstone just before publishing.
+    import logging
+
+    opp = _opp(title="ML Fellow", org="Redwood", link="https://redwood.org/apply")
+    store = RecordingStore()
+    with caplog.at_level(logging.INFO, logger="worker"):
+        status = process_message(
+            ROW, extractor=StubExtractor(opp), store=store, model_name="m",
+            is_tombstoned=lambda message_id: True,
+        )
+    assert status == "retracted"
+    assert store.upserts == []  # never published

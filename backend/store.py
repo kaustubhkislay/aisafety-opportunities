@@ -119,6 +119,15 @@ class RawStore:
             ).fetchall()
             return [dict(row) for row in rows]
 
+    def is_processed(self, message_id: str) -> bool:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM messages WHERE message_id = ? "
+                "AND processed_at IS NOT NULL",
+                (message_id,),
+            ).fetchone()
+            return row is not None
+
     def mark_processed(self, message_id: str) -> None:
         with self._connect() as conn:
             conn.execute(
