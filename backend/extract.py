@@ -1,8 +1,11 @@
 import json
+import logging
 
 from pydantic import ValidationError
 
 from backend.models import Opportunity
+
+log = logging.getLogger("extract")
 
 VOCAB = {
     "job",
@@ -63,5 +66,11 @@ class Extractor:
                     opp.type = "other"
                 return opp
             except (ValidationError, ValueError, TypeError, json.JSONDecodeError) as err:
+                # Malformed model OUTPUT only — transport/provider errors are
+                # not caught here and propagate (the worker retries those).
                 last_err = err
-        raise ExtractionError(f"extraction failed after retry: {last_err}")
+        # Deterministic malformed output is a poison pill: at temperature 0 the
+        # next retry fails identically, forever, burning the spend cap. Treat
+        # it as not-an-opportunity and move on.
+        log.warning("persistently malformed extraction output; skipping (%s)", last_err)
+        return None

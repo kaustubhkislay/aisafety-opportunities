@@ -57,13 +57,42 @@ def test_invalid_json_then_valid_retries():
     assert client.chat.completions.calls == 2
 
 
-def test_two_failures_raise():
+def test_persistent_malformed_output_returns_none(caplog):
+    # Deterministic malformed output is a poison pill: retrying forever would
+    # burn the spend cap. After the retry, treat it as not-an-opportunity.
+    import logging
+
     client = FakeClient(["nope", "still nope"])
-    with pytest.raises(ExtractionError):
-        Extractor(client, "qwen-test").extract("x")
+    with caplog.at_level(logging.WARNING, logger="extract"):
+        assert Extractor(client, "qwen-test").extract("x") is None
+    assert client.chat.completions.calls == 2
+    assert any("malformed" in r.message for r in caplog.records)
 
 
-def test_content_none_raises():
+def test_content_none_returns_none():
     client = FakeClient([None, None])
-    with pytest.raises(ExtractionError):
+    assert Extractor(client, "qwen-test").extract("x") is None
+
+
+def test_transport_errors_still_raise():
+    # Network/provider failures are transient: they must propagate so the
+    # worker leaves the row unprocessed and retries later.
+    class _BoomCompletions:
+        def create(self, **kwargs):
+            raise ConnectionError("provider down")
+
+    client = SimpleNamespace(chat=SimpleNamespace(completions=_BoomCompletions()))
+    with pytest.raises(ConnectionError):
         Extractor(client, "qwen-test").extract("x")
+
+
+def test_boolish_strings_are_coerced():
+    client = FakeClient(['{"is_opportunity": "true", "title": "X", "remote": "false"}'])
+    opp = Extractor(client, "qwen-test").extract("x")
+    assert opp is not None and opp.remote is False
+
+
+def test_null_bools_are_coerced():
+    client = FakeClient(['{"is_opportunity": true, "title": "X", "remote": null}'])
+    opp = Extractor(client, "qwen-test").extract("x")
+    assert opp is not None and opp.remote is False
