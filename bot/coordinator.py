@@ -42,7 +42,7 @@ class Ingestor:
             return
         status = await self.forwarder.forward(payload)
         if status // 100 == 2:
-            self.store.set_cursor(payload["channel_id"], payload["message_id"])
+            self.store.set_cursor(payload["channel_id"], payload["message_id"], payload["server_id"])
 
     async def handle_live(self, message) -> None:
         if not self._ready:
