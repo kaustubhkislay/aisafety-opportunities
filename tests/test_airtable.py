@@ -38,3 +38,14 @@ def test_upsert_creates_then_updates():
     assert rid2 == rid  # same record, not a duplicate
     assert backend.records[rid]["title"] == "ML Fellow (updated deadline)"
     assert len(backend.records) == 1
+
+
+def test_upsert_unions_source_servers():
+    backend = FakeBackend()
+    store = AirtableStore(backend)
+    store.upsert({"title": "X", "dedup_key": "k", "source_servers": "AI Safety Hub"}, "k")
+    # Same opportunity seen in a second community: names accumulate, no dupes.
+    store.upsert({"title": "X", "dedup_key": "k", "source_servers": "WAISI"}, "k")
+    store.upsert({"title": "X", "dedup_key": "k", "source_servers": "WAISI"}, "k")
+    record = backend.find_by_dedup_key("k")
+    assert record["fields"]["source_servers"] == "AI Safety Hub, WAISI"

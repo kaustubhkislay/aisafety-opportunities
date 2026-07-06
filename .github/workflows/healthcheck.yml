@@ -1,0 +1,54 @@
+# Autonomous production watch — replaces any human/session log-watching.
+# Every 15 minutes: backend /healthz, site, and feed must answer. On failure,
+# open (or comment on) a pinned "production health" issue so the owner gets
+# emailed by GitHub; auto-close it when everything recovers.
+name: healthcheck
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe endpoints
+        id: probe
+        run: |
+          fails=""
+          check() {
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$2" || echo 000)
+            echo "$1: $code"
+            case "$code" in 2*) ;; *) fails="$fails $1($code)";; esac
+          }
+          check backend-healthz https://aisopportunities-backend.fly.dev/healthz
+          check site https://aisopportunities.com
+          check feed https://aisopportunities.com/feed.xml
+          echo "fails=${fails# }" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update health issue on failure
+        if: steps.probe.outputs.fails != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILS: ${{ steps.probe.outputs.fails }}
+        run: |
+          title="production health: endpoint check failing"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+          body="Failing checks: $FAILS (run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi
+
+      - name: Close health issue on recovery
+        if: steps.probe.outputs.fails == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="production health: endpoint check failing"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+          [ -n "$existing" ] && gh issue close "$existing" --repo "$GITHUB_REPOSITORY" --comment "All endpoints healthy again." || true

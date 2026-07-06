@@ -20,6 +20,10 @@ export function mapRecord(fields: Record<string, unknown>): Opportunity {
     sourceChannel: str(fields.source_channel),
     dateSeen: strOrNull(fields.date_seen),
     dedupKey: str(fields.dedup_key),
+    sourceServers: str(fields.source_servers)
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   };
 }
 

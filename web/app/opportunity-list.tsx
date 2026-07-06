@@ -94,6 +94,9 @@ export function OpportunityList({
                 {o.remote ? " · remote" : ""}
               </p>
               <p className="text-sm">{deadlineLabel(o.deadline, now)}</p>
+              {o.sourceServers.length > 0 && (
+                <p className="text-xs text-gray-500">found in {o.sourceServers.join(", ")}</p>
+              )}
             </li>
           );
         })}

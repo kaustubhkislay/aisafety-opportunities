@@ -14,4 +14,5 @@ export interface Opportunity {
   sourceChannel: string;
   dateSeen: string | null;
   dedupKey: string;
+  sourceServers: string[];
 }

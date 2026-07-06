@@ -9,7 +9,7 @@ def test_message_to_payload():
         id=100,
         content="Apply: https://example.org",
         created_at=datetime(2026, 6, 25, 12, 0, tzinfo=timezone.utc),
-        guild=SimpleNamespace(id=1),
+        guild=SimpleNamespace(id=1, name="AI Safety Hub"),
         channel=SimpleNamespace(id=10),
         author=SimpleNamespace(id=5),
     )
@@ -18,6 +18,7 @@ def test_message_to_payload():
 
     assert payload == {
         "server_id": "1",
+        "server_name": "AI Safety Hub",
         "channel_id": "10",
         "message_id": "100",
         "author_id": "5",

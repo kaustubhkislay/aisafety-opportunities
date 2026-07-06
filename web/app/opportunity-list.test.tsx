@@ -7,7 +7,7 @@ import type { Opportunity } from "@/lib/types";
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: "2027-01-01", link: "https://x.org",
-    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "",
+    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], sourceServers: [],
     ...p,
   };
 }
@@ -35,5 +35,21 @@ describe("OpportunityList", () => {
     const link = screen.getByRole("link", { name: /ML Fellow/ });
     expect(link).toHaveAttribute("href", "https://apply.example/x");
     expect(link).toHaveAttribute("target", "_blank");
+  });
+});
+
+describe("server attribution", () => {
+  it("shows which communities an opportunity was found in", () => {
+    render(
+      <OpportunityList
+        opportunities={[opp({ title: "ML Fellow", sourceServers: ["AI Safety Hub", "WAISI"] })]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByText(/found in AI Safety Hub, WAISI/)).toBeInTheDocument();
+  });
+  it("omits attribution when no community is recorded", () => {
+    render(<OpportunityList opportunities={[opp({ title: "X" })]} nowISO={NOW_ISO} />);
+    expect(screen.queryByText(/found in/)).not.toBeInTheDocument();
   });
 });

@@ -30,3 +30,17 @@ def test_duplicate_message_id_is_ignored(tmp_path):
     assert store.insert_message(SAMPLE) is False  # same message_id
 
     assert len(store.get_messages()) == 1
+
+
+def test_server_name_round_trips(tmp_path):
+    from backend.store import RawStore
+
+    store = RawStore(str(tmp_path / "raw.db"))
+    store.init_db()
+    store.insert_message({
+        "server_id": "1", "server_name": "AI Safety Hub", "channel_id": "10",
+        "message_id": "m1", "author_id": "5", "content": "x",
+        "created_at": "2026-07-06T00:00:00+00:00",
+    })
+    rows = store.claim_unprocessed(10)
+    assert rows[0]["server_name"] == "AI Safety Hub"
