@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class IngestMessage(BaseModel):
@@ -31,3 +31,17 @@ class Opportunity(BaseModel):
     link: str | None = None
     location: str | None = None
     remote: bool = False
+
+    @field_validator("is_opportunity", "remote", mode="before")
+    @classmethod
+    def _coerce_boolish(cls, v):
+        # LLM JSON sometimes carries "true"/"false" strings or null for bools.
+        if v is None:
+            return False
+        if isinstance(v, str):
+            lowered = v.strip().lower()
+            if lowered in ("true", "yes"):
+                return True
+            if lowered in ("false", "no", ""):
+                return False
+        return v
