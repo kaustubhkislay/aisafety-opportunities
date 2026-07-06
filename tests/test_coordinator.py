@@ -74,3 +74,19 @@ async def test_messages_after_ready_forward_immediately(tmp_path):
     await ingestor.handle_live(_msg(400, channel_id=20))
     assert [p["message_id"] for p in forwarder.forwarded] == ["400"]
     assert store.get_cursor("20") == "400"
+
+
+async def test_backfill_guild_ingests_history_of_a_newly_joined_server(tmp_path):
+    # Installing into a server while the bot is already running must backfill
+    # that server's history immediately, not wait for the next restart.
+    store = RawStore(str(tmp_path / "raw.db"))
+    store.init_db()
+    forwarder = RecordingForwarder()
+    ingestor = Ingestor(store, forwarder, lambda s, c: "public")
+    ingestor._ready = True  # bot long past startup
+
+    channel = FilteringChannel(30, [_msg(301, 30), _msg(302, 30)])
+    await ingestor.backfill_guild([channel])
+
+    assert [p["message_id"] for p in forwarder.forwarded] == ["301", "302"]
+    assert store.get_cursor("30") == "302"

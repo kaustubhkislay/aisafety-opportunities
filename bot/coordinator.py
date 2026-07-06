@@ -72,3 +72,19 @@ class Ingestor:
             for message in buffered:
                 await self._forward(message)
         self._ready = True
+
+    async def backfill_guild(self, channels) -> None:
+        """Backfill a server the bot joined while already running (install
+        mid-flight); live messages keep flowing concurrently — the raw store's
+        idempotent inserts and monotonic cursors make overlap harmless."""
+        for channel in channels:
+            guild = getattr(channel, "guild", None)
+            server_id = str(guild.id) if guild is not None else ""
+            default = self.channel_default_fn(server_id, str(channel.id))
+            try:
+                await backfill_channel(
+                    channel, self.store, self.forwarder, channel_default=default,
+                    oldest_snowflake=self.oldest_snowflake,
+                )
+            except discord.Forbidden:
+                continue

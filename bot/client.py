@@ -60,6 +60,15 @@ def build_client(config: dict) -> discord.Client:
             await forwarder.retract(str(payload.message_id))
 
     @client.event
+    async def on_guild_join(guild):
+        # Installed into a new server while running: backfill its
+        # opportunities channels right away (startup only covers on_ready).
+        channels = [
+            c for c in guild.text_channels if is_ingest_channel(c.name, needle)
+        ]
+        await ingestor.backfill_guild(channels)
+
+    @client.event
     async def on_guild_remove(guild):
         # Bot removed from a server -> purge everything ingested from it.
         await forwarder.purge(str(guild.id))
