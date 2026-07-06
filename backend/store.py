@@ -55,6 +55,14 @@ class RawStore:
                 conn.execute(
                     "ALTER TABLE messages ADD COLUMN server_name TEXT NOT NULL DEFAULT ''"
                 )
+            cursor_cols = [
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(cursors)").fetchall()
+            ]
+            if "server_id" not in cursor_cols:
+                conn.execute(
+                    "ALTER TABLE cursors ADD COLUMN server_id TEXT NOT NULL DEFAULT ''"
+                )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_messages_processed_at "
                 "ON messages(processed_at)"
@@ -87,9 +95,12 @@ class RawStore:
             return [dict(row) for row in rows]
 
     def delete_server(self, server_id: str) -> int:
-        """Delete all raw rows for a server (uninstall purge). Returns count."""
+        """Delete all raw rows AND backfill cursors for a server (uninstall
+        purge). Leaving cursors behind made a reinstall skip the whole history
+        (live finding). Returns the message count removed."""
         with self._connect() as conn:
             cur = conn.execute("DELETE FROM messages WHERE server_id = ?", (server_id,))
+            conn.execute("DELETE FROM cursors WHERE server_id = ?", (server_id,))
             return cur.rowcount
 
     def get_cursor(self, channel_id: str) -> str | None:
@@ -100,19 +111,20 @@ class RawStore:
             ).fetchone()
             return row["last_message_id"] if row else None
 
-    def set_cursor(self, channel_id: str, message_id: str) -> None:
+    def set_cursor(self, channel_id: str, message_id: str, server_id: str = "") -> None:
         with self._connect() as conn:
             conn.execute(
                 """
-                INSERT INTO cursors (channel_id, last_message_id)
-                VALUES (?, ?)
+                INSERT INTO cursors (channel_id, last_message_id, server_id)
+                VALUES (?, ?, ?)
                 ON CONFLICT(channel_id)
                 DO UPDATE SET last_message_id = excluded.last_message_id,
+                              server_id = excluded.server_id,
                               updated_at = datetime('now')
                 WHERE CAST(excluded.last_message_id AS INTEGER)
                       > CAST(cursors.last_message_id AS INTEGER)
                 """,
-                (channel_id, message_id),
+                (channel_id, message_id, server_id),
             )
 
     def claim_unprocessed(self, limit: int) -> list[dict]:

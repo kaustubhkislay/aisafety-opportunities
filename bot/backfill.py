@@ -22,11 +22,11 @@ async def backfill_channel(channel, store, forwarder, channel_default: str = "pu
                 "edge-excluded message %s in channel %s (%s); not transmitted",
                 payload["message_id"], channel_id, reason,
             )
-            store.set_cursor(channel_id, payload["message_id"])  # seen + dropped
+            store.set_cursor(channel_id, payload["message_id"], payload["server_id"])  # seen + dropped
             continue
         status = await forwarder.forward(payload)
         if status // 100 != 2:
             break  # leave cursor at last success; retry on next reconnect
-        store.set_cursor(channel_id, payload["message_id"])
+        store.set_cursor(channel_id, payload["message_id"], payload["server_id"])
         count += 1
     return count
