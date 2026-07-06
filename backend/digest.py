@@ -126,12 +126,16 @@ def run_digest(
     unsubscribe_base: str,
     today: date,
     since: str | None = None,
+    skip_when_empty: bool = False,
 ) -> int:
     """Send the digest to every active subscriber. Returns the number sent."""
     items = [o for o in opportunities if derive_status(o.get("deadline"), today) != "expired"]
     if since is not None:
         items = [o for o in items if (o.get("date_seen") or "") >= since]
     items.sort(key=_sort_key)
+    if skip_when_empty and not items:
+        log.info("digest: nothing new since %s — skipping send", since)
+        return 0
 
     count = 0
     for email in subscriber_store.active_emails():
@@ -206,6 +210,10 @@ def main(sender=None) -> None:
     subscribers.init_db()
 
     base = os.environ.get("BACKEND_URL", "http://localhost:3000").rstrip("/") + "/unsubscribe"
+    # Daily digest: only opportunities first seen since yesterday, and no
+    # email at all on days with nothing new.
+    from datetime import timedelta
+
     run_digest(
         subscribers,
         opportunities,
@@ -213,6 +221,8 @@ def main(sender=None) -> None:
         secret=os.environ["UNSUBSCRIBE_SECRET"],
         unsubscribe_base=base,
         today=date.today(),
+        since=(date.today() - timedelta(days=1)).isoformat(),
+        skip_when_empty=True,
     )
 
 
