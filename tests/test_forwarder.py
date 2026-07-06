@@ -49,3 +49,12 @@ async def test_aclose_closes_self_created_client():
     assert created.is_closed is False
     await forwarder.aclose()
     assert created.is_closed is True
+
+
+def test_default_client_has_generous_timeout():
+    # Live T6.5 failure: purge of a 40+-record server takes far longer than
+    # httpx's 5s default (per-record Airtable deletes); the bot timed out and
+    # logged a traceback while the server-side purge kept running.
+    f = Forwarder("http://backend", "s")
+    client = f._get_client()
+    assert client.timeout.read >= 120
