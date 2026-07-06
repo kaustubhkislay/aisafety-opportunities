@@ -29,6 +29,7 @@ class Ingestor:
         self.channel_default_fn = channel_default_fn
         self._ready = False
         self._buffer = []
+        self.oldest_snowflake = None  # set by the client from MAX_MESSAGE_AGE_DAYS
 
     async def _forward(self, message) -> None:
         payload = message_to_payload(message)
@@ -57,7 +58,8 @@ class Ingestor:
             default = self.channel_default_fn(server_id, str(channel.id))
             try:
                 await backfill_channel(
-                    channel, self.store, self.forwarder, channel_default=default
+                    channel, self.store, self.forwarder, channel_default=default,
+                    oldest_snowflake=self.oldest_snowflake,
                 )
             except discord.Forbidden:
                 continue  # not authorized to read this channel

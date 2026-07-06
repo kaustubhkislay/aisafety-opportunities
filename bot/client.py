@@ -8,6 +8,7 @@ from bot.config import load_config
 from bot.coordinator import Ingestor
 from bot.forwarder import Forwarder
 from bot.retraction import is_retraction_edit, is_retraction_reaction
+from bot.scope import is_ingest_channel, oldest_allowed_snowflake
 
 
 def build_client(config: dict) -> discord.Client:
@@ -20,6 +21,13 @@ def build_client(config: dict) -> discord.Client:
     forwarder = Forwarder(config["ingest_base_url"], config["ingest_secret"])
     channel_config = ChannelConfig.from_json(config.get("channel_config_path", "channels.json"))
     ingestor = Ingestor(store, forwarder, channel_config.channel_default)
+    needle = config.get("channel_name_filter", "opportunities")
+
+    from datetime import datetime, timezone
+
+    ingestor.oldest_snowflake = oldest_allowed_snowflake(
+        datetime.now(timezone.utc), config.get("max_message_age_days", 14)
+    )
 
     @client.event
     async def on_ready():
@@ -27,12 +35,15 @@ def build_client(config: dict) -> discord.Client:
             channel
             for guild in client.guilds
             for channel in guild.text_channels
+            if is_ingest_channel(channel.name, needle)
         ]
         await ingestor.run_startup(channels)
 
     @client.event
     async def on_message(message):
         if message.author == client.user:
+            return
+        if not is_ingest_channel(getattr(message.channel, "name", None), needle):
             return
         await ingestor.handle_live(message)
 

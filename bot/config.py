@@ -8,4 +8,6 @@ def load_config() -> dict:
         "ingest_secret": os.environ["INGEST_SHARED_SECRET"],
         "raw_db_path": os.environ.get("RAW_DB_PATH", "raw.db"),
         "channel_config_path": os.environ.get("CHANNEL_CONFIG_PATH", "channels.json"),
+        "channel_name_filter": os.environ.get("CHANNEL_NAME_FILTER", "opportunities"),
+        "max_message_age_days": int(os.environ.get("MAX_MESSAGE_AGE_DAYS", "14")),
     }
