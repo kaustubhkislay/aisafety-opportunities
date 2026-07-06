@@ -44,6 +44,7 @@ def process_message(
     link_check=is_safe,
     key_fn=stable_key,
     spend_guard=None,
+    is_tombstoned=None,
 ) -> str:
     content = row["content"]
     if not filter_fn(content):
@@ -62,6 +63,12 @@ def process_message(
         if not safe:
             log.warning("withheld %s (%s): %s", row.get("message_id"), reason, opp.link)
             return "withheld"
+    # Retraction race: a /retract may tombstone this message while extraction
+    # was in flight (found live in T6.5). Re-check just before publishing so a
+    # retraction always wins.
+    if is_tombstoned is not None and is_tombstoned(row.get("message_id")):
+        log.info("message %s retracted during extraction; not publishing", row.get("message_id"))
+        return "retracted"
     key = key_fn(opp)
     _record_id, action = store.upsert(build_fields(opp, row, key, model_name), key)
     return action
@@ -120,7 +127,7 @@ def main() -> None:
     def process_fn(row):
         status = process_message(
             row, extractor=extractor, store=store, model_name=model,
-            spend_guard=spend_guard,
+            spend_guard=spend_guard, is_tombstoned=raw_store.is_processed,
         )
         maybe_revalidate(status, revalidator)
         return status
