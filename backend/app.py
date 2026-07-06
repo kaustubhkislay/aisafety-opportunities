@@ -11,6 +11,7 @@ from backend.models import (
     SubscribeRequest,
 )
 from backend.purge import purge_server
+from backend.revalidate import make_revalidator
 from backend.store import RawStore
 from backend.subscribers import SubscriberStore
 
@@ -21,6 +22,13 @@ _store.init_db()
 
 _subscribers = SubscriberStore(os.environ.get("SUBSCRIBER_DB_PATH", "subscribers.db"))
 _subscribers.init_db()
+
+_revalidator = make_revalidator(os.environ)
+
+
+def _ping_site() -> None:
+    if _revalidator is not None:
+        _revalidator()
 
 
 def require_secret(x_ingest_secret: str | None = Header(default=None)) -> None:
@@ -57,6 +65,8 @@ def retract(
     # Tombstone the raw message so the worker never (re)extracts a retracted item,
     # even if retraction arrives before extraction.
     _store.mark_processed(msg.message_id)
+    if deleted:
+        _ping_site()  # retraction should disappear from the site immediately
     return {"deleted": deleted, "message_id": msg.message_id}
 
 
@@ -67,6 +77,8 @@ def purge(
     store=Depends(get_airtable_store),
 ) -> dict:
     counts = purge_server(store, _store, body.server_id)
+    if counts.get("airtable"):
+        _ping_site()
     return {"server_id": body.server_id, **counts}
 
 
