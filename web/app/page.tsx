@@ -39,7 +39,7 @@ export default async function Home() {
         </div>
         <nav aria-label="Contents" className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
           <Link href="/partners" className={toc}>Partner communities</Link>
-          <Link href="/theory-of-change" className={toc}>Theory of change</Link>
+          <Link href="/theory-of-change" className={toc}>ToC</Link>
           <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
             Feedback
           </a>
