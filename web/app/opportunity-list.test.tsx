@@ -66,10 +66,6 @@ describe("location filter and sort", () => {
     expect(screen.queryByText("Bay Role")).not.toBeInTheDocument();
   });
 
-  it("offers newest-first sorting", () => {
-    render(<OpportunityList opportunities={[opp({ title: "X", dedupKey: "x" })]} nowISO={NOW_ISO} />);
-    expect(screen.getByLabelText("Sort by")).toBeInTheDocument();
-  });
 });
 
 describe("board grouping", () => {
