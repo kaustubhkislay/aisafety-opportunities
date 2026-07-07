@@ -18,6 +18,7 @@ RUN uv export --frozen --no-dev --no-emit-project > requirements.txt \
 
 COPY backend ./backend
 COPY bot ./bot
+COPY slackbot ./slackbot
 COPY deploy/crontab deploy/entrypoint.sh ./deploy/
 RUN chmod +x deploy/entrypoint.sh
 
