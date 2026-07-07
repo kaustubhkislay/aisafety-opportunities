@@ -250,3 +250,10 @@ def test_no_deadline_item_omits_closes_line():
     digest = build_digest([_opp("Open Ended", None)], "https://site/u")
     assert "closes" not in digest["html"]
     assert "no deadline" not in digest["html"]
+
+
+def test_subject_includes_date_to_avoid_threading():
+    from datetime import date
+
+    digest = build_digest([_opp("X", "2026-08-01")], "https://site/u", today=date(2026, 7, 7))
+    assert digest["subject"] == "AI Safety Opportunities — 1 new · Jul 7"
