@@ -1,3 +1,5 @@
+> **HISTORICAL** — this is the original approved design (2026-06-25), kept for provenance. The system as deployed is described in [`ARCHITECTURE.md`](../ARCHITECTURE.md); where they disagree, ARCHITECTURE.md wins.
+
 # AI Safety Opportunities Aggregator — design spec
 
 A public, auto-updating board of AI-safety opportunities (jobs, fellowships, grants, events, courses), fed by Discord/Slack communities that install an open-source bot into their own servers.
