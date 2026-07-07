@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { loadOpportunitiesResult } from "@/lib/airtable";
 import { deriveStatus } from "@/lib/status";
@@ -12,6 +13,12 @@ export const metadata: Metadata = {
 
 const INSTALL_URL =
   "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
+
+// Known community logos (files in web/public); communities without an entry
+// render without a logo.
+const LOGOS: Record<string, string> = {
+  "Wisconsin AI Safety Initiative": "/waisi-logo.png",
+};
 
 export default async function PartnersPage() {
   const { items } = await loadOpportunitiesResult();
@@ -31,16 +38,21 @@ export default async function PartnersPage() {
         </Link>
       </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
-      <p className="mt-2 text-[var(--muted)]">
-        Every opportunity on the board is posted by a real community — these are the servers
-        currently feeding it.
-      </p>
 
-      <ul className="mt-8 space-y-3">
+      <ul className="mt-8 space-y-4">
         {partners.map(([name, count]) => (
-          <li key={name} className="border-t border-[var(--edge)] pt-3">
+          <li key={name} className="flex items-center gap-3">
+            {LOGOS[name] && (
+              <Image
+                src={LOGOS[name]}
+                alt={`${name} logo`}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded object-contain"
+              />
+            )}
             <span className="font-display text-lg font-medium">{name}</span>
-            <span className="ml-2 text-sm text-[var(--muted)]">
+            <span className="text-sm text-[var(--muted)]">
               {count} open {count === 1 ? "opportunity" : "opportunities"}
             </span>
           </li>
@@ -50,21 +62,20 @@ export default async function PartnersPage() {
         )}
       </ul>
 
-      <section className="mt-10 border-t-2 border-[var(--brand)] pt-4">
+      <section className="mt-12">
         <h2 className="font-display text-xl font-semibold">Add your community</h2>
         <p className="mt-2 text-sm">
-          Run an AI-safety Discord? Install the bot in two minutes — it reads only your
+          Run an AI-safety Discord? Install the bot in a minute — it reads only your
           opportunities channel, privacy tags are honored before anything leaves your server, and
           uninstalling deletes everything.
         </p>
         <a
           href={INSTALL_URL}
-          className="mt-3 inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+          className="mt-3 inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
         >
-          {"Install instructions >"}
+          Install instructions
         </a>
       </section>
-
     </main>
   );
 }
