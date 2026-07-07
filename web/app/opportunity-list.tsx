@@ -163,7 +163,7 @@ export function OpportunityList({
           placeholder="Search the board…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`${control} min-w-[10rem] flex-1`}
+          className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1`}
         />
         <select value={type} onChange={(e) => setType(e.target.value)} className={control} aria-label="Filter by type">
           <option value="">All types</option>
@@ -195,7 +195,7 @@ export function OpportunityList({
         <button
           type="button"
           onClick={() => setSubscribeOpen((v) => !v)}
-          className="ml-auto rounded bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+          className="w-full rounded bg-[var(--brand)] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px sm:ml-auto sm:w-auto sm:py-1.5"
         >
           ✉ Get the daily digest
         </button>

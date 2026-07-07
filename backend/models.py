@@ -23,11 +23,6 @@ class SubscribeRequest(BaseModel):
     email: str
 
 
-class FeedbackRequest(BaseModel):
-    message: str
-    email: str = ""
-
-
 class Opportunity(BaseModel):
     is_opportunity: bool
     title: str | None = None

@@ -4,9 +4,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse
 
 from backend.digest import is_valid_email, verify_token
-from backend.feedback import FeedbackStore
 from backend.models import (
-    FeedbackRequest,
     IngestMessage,
     PurgeServer,
     RetractMessage,
@@ -24,9 +22,6 @@ _store.init_db()
 
 _subscribers = SubscriberStore(os.environ.get("SUBSCRIBER_DB_PATH", "subscribers.db"))
 _subscribers.init_db()
-
-_feedback = FeedbackStore(os.environ.get("FEEDBACK_DB_PATH", "feedback.db"))
-_feedback.init_db()
 
 _revalidator = make_revalidator(os.environ)
 
@@ -101,16 +96,6 @@ def subscribe(body: SubscribeRequest) -> dict:
         raise HTTPException(status_code=400, detail="invalid email")
     added = _subscribers.add(body.email)
     return {"subscribed": added, "email": body.email.strip().lower()}
-
-
-@app.post("/feedback")
-def feedback(body: FeedbackRequest) -> dict:
-    # Public endpoint (the website's feedback form posts here).
-    message = body.message.strip()
-    if not message or len(message) > 5000:
-        raise HTTPException(status_code=400, detail="message must be 1-5000 chars")
-    _feedback.add(message, body.email.strip())
-    return {"stored": True}
 
 
 @app.get("/unsubscribe", response_class=HTMLResponse)
