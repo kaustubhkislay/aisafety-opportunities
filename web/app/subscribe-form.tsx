@@ -43,7 +43,7 @@ export function SubscribeForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px disabled:opacity-50"
+        className="box-border w-44 rounded border border-[var(--brand)] bg-[var(--brand)] px-3 py-1.5 text-center text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px disabled:opacity-50"
       >
         {status === "loading" ? "Subscribing…" : "Get the daily digest"}
       </button>

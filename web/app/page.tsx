@@ -23,19 +23,16 @@ export default async function Home() {
       <main className="board px-4 py-6 sm:px-6">
       <header className="mb-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
-              AI Safety Opportunities
-            </h1>
-            <p className="mt-0.5 text-[11px] text-[var(--muted)]">A waisi production</p>
-          </div>
+          <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
+            AI Safety Opportunities
+          </h1>
           <div className="flex flex-col items-start gap-2 lg:items-end">
             <SubscribeForm />
             <a
               href={INSTALL_URL}
-              className="rounded border-2 border-[var(--brand)] px-3 py-1.5 text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
+              className="box-border w-44 rounded border border-[var(--brand)] px-3 py-1.5 text-center text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
             >
-              + Add your community
+              Add community
             </a>
           </div>
         </div>
@@ -58,6 +55,7 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
+        <p className="mb-1 text-[11px]">A waisi production</p>
         <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
         {" · "}
         <a href="/terms" className="hover:text-[var(--brand-hover)]">Terms</a>
