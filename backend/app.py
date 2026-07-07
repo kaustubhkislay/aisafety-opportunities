@@ -12,10 +12,13 @@ from backend.models import (
 )
 from backend.purge import purge_server
 from backend.revalidate import make_revalidator
+from backend.slack import router as slack_router
 from backend.store import RawStore
 from backend.subscribers import SubscriberStore
 
 app = FastAPI(title="aisafety-opportunities ingestion")
+
+app.include_router(slack_router)
 
 _store = RawStore(os.environ.get("RAW_DB_PATH", "raw.db"))
 _store.init_db()
