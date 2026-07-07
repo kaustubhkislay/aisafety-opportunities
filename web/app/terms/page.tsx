@@ -21,8 +21,8 @@ export default function TermsPage() {
         <h2 className="text-lg font-semibold">What this site is</h2>
         <p className="mt-2">
           AI Safety Opportunities is a free, open-source, automatically curated board of AI-safety
-          jobs, fellowships, grants, events, and courses, aggregated from community Discord servers
-          whose owners installed our bot.
+          jobs, fellowships, grants, events, and courses, aggregated from community Discord
+          servers and Slack workspaces whose owners installed our bot.
         </p>
       </section>
 

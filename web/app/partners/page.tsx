@@ -11,7 +11,10 @@ export const metadata: Metadata = {
   description: "The communities whose opportunities feed this board.",
 };
 
-const INSTALL_URL =
+const DISCORD_INSTALL_URL =
+  "https://discord.com/oauth2/authorize?client_id=1523518596108652554&scope=bot&permissions=66560";
+const SLACK_INSTALL_URL = "https://aisopportunities-backend.fly.dev/slack/install";
+const INSTALL_DOCS_URL =
   "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
 
 // Known community logos (files in web/public); communities without an entry
@@ -59,19 +62,32 @@ export default async function PartnersPage() {
         )}
       </ul>
 
-      <section className="mt-12">
+      <section id="add" className="mt-12">
         <h2 className="font-display text-xl font-semibold">Add your community</h2>
         <p className="mt-2 text-sm">
-          Run an AI-safety Discord? Install the bot in a minute — it reads only your
-          opportunities channel, privacy tags are honored before anything leaves your server, and
-          uninstalling deletes everything.
+          Run an AI-safety Discord or Slack? Install the bot in a minute — it reads only your
+          opportunities channel, privacy tags are honored, and uninstalling deletes everything.
+          On Slack, <code>/invite</code> the bot into the channel after installing.
         </p>
-        <a
-          href={INSTALL_URL}
-          className="mt-3 inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
-        >
-          Install instructions
-        </a>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a
+            href={DISCORD_INSTALL_URL}
+            className="inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+          >
+            Add to Discord
+          </a>
+          <a
+            href={SLACK_INSTALL_URL}
+            className="inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+          >
+            Add to Slack
+          </a>
+        </div>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          <a href={INSTALL_DOCS_URL} className="hover:text-[var(--brand-hover)]">
+            Full install instructions
+          </a>
+        </p>
       </section>
     </main>
   );

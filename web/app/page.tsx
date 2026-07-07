@@ -6,8 +6,7 @@ import Link from "next/link";
 
 export const revalidate = 3600;
 
-const INSTALL_URL =
-  "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
+const INSTALL_URL = "/partners#add"; // Discord + Slack install buttons live there
 
 const FEEDBACK_FORM_URL = "https://forms.gle/3bw8AoE8ZjETFMik7";
 

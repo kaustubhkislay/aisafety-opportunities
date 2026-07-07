@@ -36,8 +36,9 @@ export default function TheoryOfChangePage() {
         </B>
         <B>This is a pain and isn&rsquo;t automated for ToS reasons.</B>
         <B>
-          Our bot is the compliant version: owner-installed, using Discord&rsquo;s official API,
-          with two read-only permissions and explicit consent per community.
+          Our bot is the compliant version: owner-installed, using Discord&rsquo;s and
+          Slack&rsquo;s official APIs, with read-only permissions and explicit consent per
+          community.
         </B>
       </ul>
 
