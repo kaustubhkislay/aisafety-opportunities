@@ -225,3 +225,22 @@ def test_skip_when_empty_still_sends_when_new_items_exist(tmp_path):
     )
     assert count == 1
     assert "Fresh" in sent[0][2]
+
+
+def test_build_digest_is_branded_html():
+    opps = [_opp("ML Fellow", "2026-08-01")]
+    digest = build_digest(opps, "https://site/u", site_url="https://aisopportunities.com")
+    html = digest["html"]
+    assert "#6b46c1" in html  # brand violet
+    assert "https://aisopportunities.com" in html  # view-the-board CTA
+    assert "max-width" in html  # centered email container
+    assert 'style="' in html  # inline styles (email clients ignore stylesheets)
+
+
+def test_build_digest_items_show_org_deadline_categories():
+    opps = [dict(_opp("ML Fellow", "2026-08-01"), org="Redwood", categories=["tech", "gov"])]
+    digest = build_digest(opps, "https://site/u")
+    html = digest["html"]
+    assert "Redwood" in html
+    assert "2026-08-01" in html
+    assert "tech" in html and "gov" in html
