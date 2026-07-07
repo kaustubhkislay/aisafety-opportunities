@@ -28,8 +28,12 @@ export function SubscribeForm() {
     }
   }
 
+  if (status === "ok") {
+    return <p className="py-1.5 text-sm text-[var(--brand)]">Subscribed — check your inbox.</p>;
+  }
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
+    <form onSubmit={onSubmit} className="flex flex-wrap items-center justify-end gap-2">
       <label htmlFor="digest-email" className="sr-only">Email for the digest</label>
       <input
         id="digest-email"
@@ -47,8 +51,9 @@ export function SubscribeForm() {
       >
         {status === "loading" ? "Subscribing…" : "Get the daily digest"}
       </button>
-      {status === "ok" && <span className="text-sm text-green-700">Subscribed — check your inbox.</span>}
-      {status === "error" && <span className="text-sm text-red-700">Something went wrong. Try again.</span>}
+      {status === "error" && (
+        <p className="w-full text-right text-sm text-red-700">Something went wrong. Try again.</p>
+      )}
     </form>
   );
 }
