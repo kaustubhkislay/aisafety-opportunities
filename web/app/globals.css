@@ -8,6 +8,7 @@
   --card: #ffffff;
   --muted: #6f6a62;
   --edge: #e8dcc8;
+  --board: #f5efe2;
   --brand: #6b46c1;
   --brand-hover: #553496;
   --brand-link: #8b5cf6;
@@ -28,6 +29,7 @@
     --card: #3a362f;
     --muted: #b5aea3;
     --edge: #555047;
+    --board: #37322b;
     --brand: #c4b5fd;
     --brand-hover: #ddd3ff;
     --brand-link: #c4b5fd;
@@ -39,6 +41,38 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "rl-limo", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Bulletin board: stippled beige surface in a silver frame. */
+.board {
+  background-color: var(--board);
+  background-image:
+    radial-gradient(rgba(122, 101, 68, 0.10) 1px, transparent 1.3px),
+    radial-gradient(rgba(122, 101, 68, 0.06) 1px, transparent 1.3px);
+  background-size: 15px 15px, 27px 27px;
+  background-position: 0 0, 8px 13px;
+  border: 9px solid;
+  border-image: linear-gradient(
+      145deg,
+      #e9eaec,
+      #c3c5c9 28%,
+      #f4f5f6 52%,
+      #b4b6ba 78%,
+      #dcdde0
+    )
+    1;
+  box-shadow:
+    0 3px 14px rgba(28, 25, 23, 0.16),
+    inset 0 1px 4px rgba(28, 25, 23, 0.18);
+}
+
+@media (prefers-color-scheme: dark) {
+  .board {
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.22) 1px, transparent 1.3px),
+      radial-gradient(rgba(0, 0, 0, 0.14) 1px, transparent 1.3px);
+    border-image: linear-gradient(145deg, #6e7075, #4a4c50 30%, #7d7f84 55%, #3f4144 80%, #606266) 1;
+  }
 }
 
 .font-display {

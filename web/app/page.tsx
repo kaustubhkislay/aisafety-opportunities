@@ -19,7 +19,8 @@ export default async function Home() {
   const now = new Date();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-2 py-5 sm:px-4 sm:py-8">
+      <main className="board px-4 py-6 sm:px-6">
       <header className="mb-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
@@ -64,6 +65,7 @@ export default async function Home() {
           Open source
         </a>
       </footer>
-    </main>
+      </main>
+    </div>
   );
 }
