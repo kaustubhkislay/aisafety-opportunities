@@ -42,7 +42,7 @@ export default async function PartnersPage() {
       </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
 
-      <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+      <ul className="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         {partners.map(([name]) => (
           <li key={name} className="flex items-center gap-3">
             {LOGOS[name] && (
@@ -51,10 +51,10 @@ export default async function PartnersPage() {
                 alt={`${name} logo`}
                 width={455}
                 height={96}
-                className="h-6 w-auto"
+                className="h-6 w-auto shrink-0"
               />
             )}
-            <span className="font-display text-lg font-medium">{name}</span>
+            <span className="min-w-0 font-display text-lg font-medium leading-snug">{name}</span>
           </li>
         ))}
         {partners.length === 0 && (
