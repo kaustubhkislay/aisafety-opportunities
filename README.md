@@ -53,8 +53,11 @@ Takes about two minutes. You need **Manage Server** permission.
 
 ## Install the bot in your Slack workspace
 
-1. **Click the install link:** `https://<backend-host>/slack/install` and
-   authorize — the app asks only for read scopes on public channels.
+1. **Click the install link:**
+
+   > **[Add AI Safety Opportunities to Slack](https://aisopportunities-backend.fly.dev/slack/install)**
+
+   and authorize — the app asks only for read scopes on public channels.
 2. **`/invite` the bot** into your opportunities channel (name must contain
    `opportunities`). Inviting it to any other channel does nothing.
 3. **That's it** — the last 14 days backfill and new posts appear on the site
@@ -102,7 +105,7 @@ See [`docs/design-spec.md`](docs/design-spec.md) for the full design.
 
 ## Status
 
-**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord-first; Slack ingestion shipped 2026-07-07 as a second adapter on the same backend (beta — pending a production Slack app registration). Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
+**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord and Slack ingestion are both live — Slack shipped 2026-07-07 as a second adapter on the same backend, with the production Slack app registered and installable from the link above or the site's Add-community buttons. Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
 
 ## Privacy
 
