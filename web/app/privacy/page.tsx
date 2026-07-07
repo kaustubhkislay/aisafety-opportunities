@@ -86,10 +86,6 @@ export default function PrivacyPage() {
       </section>
 
       <footer className="mt-12 text-sm text-gray-500">
-        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
-          Home
-        </Link>{" "}
-        ·{" "}
         <Link href="/terms" className="transition-colors hover:text-[var(--brand-hover)]">
           Terms
         </Link>
