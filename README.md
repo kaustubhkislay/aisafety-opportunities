@@ -51,6 +51,18 @@ Takes about two minutes. You need **Manage Server** permission.
 - **Leave entirely:** kick the bot. Every record, raw message, and bookmark
   from your server is purged immediately — uninstall means gone.
 
+## Install the bot in your Slack workspace
+
+1. **Click the install link:** `https://<backend-host>/slack/install` and
+   authorize — the app asks only for read scopes on public channels.
+2. **`/invite` the bot** into your opportunities channel (name must contain
+   `opportunities`). Inviting it to any other channel does nothing.
+3. **That's it** — the last 14 days backfill and new posts appear on the site
+   within seconds. `[private]`-style tags, 🔒-reaction retraction, and
+   uninstall purge work exactly as on Discord, with one honest difference:
+   Slack pushes events to our backend, so excluded messages are discarded at
+   ingestion (before storage or processing) rather than inside your workspace.
+
 ## Self-hosting your own instance
 
 The hosted bot above feeds aisopportunities.com. To run the whole stack
@@ -90,7 +102,7 @@ See [`docs/design-spec.md`](docs/design-spec.md) for the full design.
 
 ## Status
 
-**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord-first; Slack support is a later adapter on the same backend. Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
+**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord-first; Slack ingestion shipped 2026-07-07 as a second adapter on the same backend (beta — pending a production Slack app registration). Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
 
 ## Privacy
 

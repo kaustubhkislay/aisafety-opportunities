@@ -32,6 +32,14 @@ export default function PrivacyPage() {
           <code>school-specific</code>, <code>internal</code>, or <code>do-not-share</code>, and all messages in channels the
           owner marks private-by-default, are dropped on the spot and never sent to us.
         </p>
+        <p className="mt-2">
+          <strong>Slack:</strong> the bot reads only public channels it is explicitly
+          invited to whose names contain <code>opportunities</code>. Slack delivers
+          events to our backend, so exclusion-tagged messages are discarded at
+          ingestion — before storage or processing — rather than inside your
+          workspace. Retraction (🔒 or a <code>[private]</code> edit) and
+          uninstall purge work the same as on Discord.
+        </p>
       </section>
 
       <section className="mt-8">
