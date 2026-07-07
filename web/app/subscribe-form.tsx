@@ -38,7 +38,7 @@ export function SubscribeForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.org"
-        className="w-40 border-b border-[var(--edge)] bg-transparent px-1 py-1.5 text-sm focus:border-[var(--brand)] focus:outline-none"
+        className="w-44 rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
       />
       <button
         type="submit"
