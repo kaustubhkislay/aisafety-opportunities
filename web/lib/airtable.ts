@@ -28,8 +28,10 @@ export function mapRecord(fields: Record<string, unknown>): Opportunity {
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
-    // Sanitize server-side: only the scrubbed excerpt ever reaches the client.
-    description: sanitizeExcerpt(str(fields.raw_text)),
+    // LLM-extracted description (new records); sanitized excerpt of the
+    // posting for records extracted before the field existed. Either way the
+    // sanitize pass runs server-side so only scrubbed text reaches the client.
+    description: sanitizeExcerpt(str(fields.description) || str(fields.raw_text)),
   };
 }
 

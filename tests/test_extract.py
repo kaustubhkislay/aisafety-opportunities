@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -131,3 +132,24 @@ def test_missing_categories_default_to_other():
     client = FakeClient(['{"is_opportunity": true, "title": "X"}'])
     opp = Extractor(client, "m").extract("x")
     assert opp.categories == ["other"]
+
+
+def test_description_passes_through():
+    client = FakeClient([json.dumps({
+        "is_opportunity": True, "title": "ML Fellow", "org": "Org",
+        "type": "fellowship", "deadline": None, "link": "https://example.org",
+        "location": None, "remote": True, "categories": ["tech"],
+        "description": "A 12-week research fellowship for early-career ML engineers.",
+    })])
+    opp = Extractor(client, "m").extract("msg")
+    assert opp.description == "A 12-week research fellowship for early-career ML engineers."
+
+
+def test_missing_description_defaults_to_none():
+    client = FakeClient([json.dumps({
+        "is_opportunity": True, "title": "T", "org": "O", "type": "job",
+        "deadline": None, "link": None, "location": None, "remote": False,
+        "categories": ["other"],
+    })])
+    opp = Extractor(client, "m").extract("msg")
+    assert opp.description is None
