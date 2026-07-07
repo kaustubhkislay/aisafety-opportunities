@@ -52,6 +52,24 @@ class AirtableStore:
             self.backend.delete(record["id"])
         return len(records)
 
+    def remove_server_attribution(self, names: set[str]) -> int:
+        """Scrub a purged community from surviving records' ``source_servers``.
+
+        A record deduped across communities lists every community it was seen
+        in; deleting only records whose *latest* source is the purged server
+        would leave the purged community attributed (and on the partners page)
+        via merged records. Returns the number of records updated.
+        """
+        updated = 0
+        for record in self.backend.all():
+            blob = record["fields"].get("source_servers") or ""
+            parts = [p.strip() for p in blob.split(",") if p.strip()]
+            kept = [p for p in parts if p not in names]
+            if kept != parts:
+                self.backend.update(record["id"], {"source_servers": ", ".join(kept)})
+                updated += 1
+        return updated
+
 
 class PyairtableBackend:
     def __init__(self, table):

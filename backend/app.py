@@ -80,7 +80,7 @@ def purge(
     store=Depends(get_airtable_store),
 ) -> dict:
     counts = purge_server(store, _store, body.server_id)
-    if counts.get("airtable"):
+    if counts.get("airtable") or counts.get("scrubbed"):
         _ping_site()
     return {"server_id": body.server_id, **counts}
 

@@ -122,7 +122,7 @@ async def slack_events(request: Request, background: BackgroundTasks) -> dict:
         airtable = get_airtable_store()
         counts = purge_server(airtable, _store, action.server_id)
         _tokens.delete(team_id)
-        if counts.get("airtable"):
+        if counts.get("airtable") or counts.get("scrubbed"):
             _ping_site()
         logger.info("slack purge team=%s counts=%s", team_id, counts)
     elif isinstance(action, Backfill):

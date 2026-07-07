@@ -8,5 +8,6 @@ export async function POST(req: Request): Promise<Response> {
   }
   revalidatePath("/");
   revalidatePath("/feed.xml");
+  revalidatePath("/partners"); // partner list derives from the same records
   return Response.json({ revalidated: true });
 }

@@ -27,5 +27,6 @@ describe("POST /api/revalidate", () => {
     expect(res.status).toBe(200);
     expect(revalidatePath).toHaveBeenCalledWith("/");
     expect(revalidatePath).toHaveBeenCalledWith("/feed.xml");
+    expect(revalidatePath).toHaveBeenCalledWith("/partners");
   });
 });

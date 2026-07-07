@@ -52,6 +52,14 @@ class FakeBackend:
     def delete(self, record_id):
         self.deleted.append(record_id)
 
+    def all(self):
+        return [r for r in self.records if r["id"] not in self.deleted]
+
+    def update(self, record_id, fields):
+        for r in self.records:
+            if r["id"] == record_id:
+                r["fields"].update(fields)
+
 
 def test_delete_by_server_deletes_all_matching():
     records = [
@@ -79,7 +87,7 @@ def test_purge_server_clears_both_stores(tmp_path):
 
     result = purge_server(airtable, raw, "A")
 
-    assert result == {"airtable": 2, "raw": 2}
+    assert result == {"airtable": 2, "scrubbed": 0, "raw": 2}
     assert raw.get_messages_by_server("A") == []
     assert {m["message_id"] for m in raw.get_messages_by_server("B")} == {"3"}
 
@@ -136,7 +144,7 @@ def test_purge_endpoint_clears_server(tmp_path, monkeypatch):
     resp = client.post("/purge", json={"server_id": "A"}, headers={"X-Ingest-Secret": "s3cret"})
 
     assert resp.status_code == 200
-    assert resp.json() == {"server_id": "A", "airtable": 1, "raw": 1}
+    assert resp.json() == {"server_id": "A", "airtable": 1, "scrubbed": 0, "raw": 1}
     assert mod._store.get_messages_by_server("A") == []
     assert len(mod._store.get_messages_by_server("B")) == 1
 
@@ -162,3 +170,68 @@ def test_ingested_endpoint_rejects_bad_secret(tmp_path, monkeypatch):
     _mod, client = _api(tmp_path, monkeypatch, airtable)
     resp = client.get("/ingested/A", headers={"X-Ingest-Secret": "wrong"})
     assert resp.status_code == 401
+
+
+# --- Purge scrubs attribution from surviving merged records ----------------
+
+class RichFakeBackend:
+    """Fake with the full surface purge needs: find/delete/all/update."""
+
+    def __init__(self, records):
+        self.records = {r["id"]: dict(r["fields"]) for r in records}
+        self.updates: list[tuple[str, dict]] = []
+
+    def find_by_server(self, server_id):
+        return [{"id": rid, "fields": f} for rid, f in self.records.items()
+                if f.get("source_server") == server_id]
+
+    def delete(self, record_id):
+        self.records.pop(record_id, None)
+
+    def all(self):
+        return [{"id": rid, "fields": dict(f)} for rid, f in self.records.items()]
+
+    def update(self, record_id, fields):
+        self.records[record_id].update(fields)
+        self.updates.append((record_id, fields))
+
+
+def test_purge_scrubs_name_from_surviving_merged_records(tmp_path):
+    raw = _raw(tmp_path)
+    raw.insert_message({
+        "server_id": "slack:T1", "server_name": "Uni Slack", "channel_id": "c",
+        "message_id": "m1", "author_id": "u", "content": "x",
+        "created_at": "2026-07-07T12:00:00+00:00",
+    })
+    backend = RichFakeBackend([
+        # r1's latest source is the purged workspace -> deleted outright
+        {"id": "r1", "fields": {"source_server": "slack:T1",
+                                "source_servers": "Uni Slack"}},
+        # r2 is a merged record whose latest source is another community ->
+        # survives, but the purged community's attribution must be scrubbed
+        {"id": "r2", "fields": {"source_server": "999",
+                                "source_servers": "Other Discord, Uni Slack"}},
+        # r3 untouched
+        {"id": "r3", "fields": {"source_server": "888",
+                                "source_servers": "Third"}},
+    ])
+    store = AirtableStore(backend)
+
+    counts = purge_server(store, raw, "slack:T1")
+
+    assert counts == {"airtable": 1, "scrubbed": 1, "raw": 1}
+    assert "r1" not in backend.records
+    assert backend.records["r2"]["source_servers"] == "Other Discord"
+    assert backend.records["r3"]["source_servers"] == "Third"
+
+
+def test_purge_scrubs_server_id_when_name_unknown(tmp_path):
+    # Records whose source_servers fell back to the raw server_id (no name)
+    raw = _raw(tmp_path)
+    backend = RichFakeBackend([
+        {"id": "r1", "fields": {"source_server": "999",
+                                "source_servers": "Other, slack:T1"}},
+    ])
+    counts = purge_server(AirtableStore(backend), raw, "slack:T1")
+    assert counts["scrubbed"] == 1
+    assert backend.records["r1"]["source_servers"] == "Other"
