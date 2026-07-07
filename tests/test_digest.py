@@ -257,3 +257,15 @@ def test_subject_includes_date_to_avoid_threading():
 
     digest = build_digest([_opp("X", "2026-08-01")], "https://site/u", today=date(2026, 7, 7))
     assert digest["subject"] == "AI Safety Opportunities — 1 new · Jul 7"
+
+
+def test_footer_carries_unique_sent_stamp():
+    digest = build_digest(
+        [_opp("X", "2026-08-01")], "https://site/u", sent_at="2026-07-07 07:42 UTC",
+    )
+    assert "Sent 2026-07-07 07:42 UTC" in digest["html"]
+    # different stamps -> different bodies, so Gmail can't trim as quoted text
+    other = build_digest(
+        [_opp("X", "2026-08-01")], "https://site/u", sent_at="2026-07-08 15:00 UTC",
+    )
+    assert digest["html"] != other["html"]
