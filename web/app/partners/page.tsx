@@ -17,7 +17,7 @@ const INSTALL_URL =
 // Known community logos (files in web/public); communities without an entry
 // render without a logo.
 const LOGOS: Record<string, string> = {
-  "Wisconsin AI Safety Initiative": "/waisi-logo.png",
+  "Wisconsin AI Safety Initiative": "/waisi-full.png",
 };
 
 export default async function PartnersPage() {
@@ -46,9 +46,9 @@ export default async function PartnersPage() {
               <Image
                 src={LOGOS[name]}
                 alt={`${name} logo`}
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded object-contain"
+                width={455}
+                height={96}
+                className="h-6 w-auto"
               />
             )}
             <span className="font-display text-lg font-medium">{name}</span>
