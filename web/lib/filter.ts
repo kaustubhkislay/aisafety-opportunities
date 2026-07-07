@@ -6,6 +6,7 @@ export interface Query {
   types?: string[];
   servers?: string[];
   locations?: string[];
+  categories?: string[];
   sortBy?: "deadline" | "newest";
   remoteOnly?: boolean;
   showPast?: boolean;
@@ -25,6 +26,7 @@ export function filterAndSort(items: Opportunity[], query: Query, now: Date): Op
     if (types.length > 0 && !types.includes(o.type)) return false;
     if (servers.length > 0 && !(o.sourceServers ?? []).some((s) => servers.includes(s))) return false;
     if ((query.locations ?? []).length > 0 && !(query.locations ?? []).includes(o.location ?? "")) return false;
+    if ((query.categories ?? []).length > 0 && !(o.categories ?? []).some((c) => (query.categories ?? []).includes(c))) return false;
     if (query.remoteOnly && !o.remote) return false;
     if (!query.showPast && deriveStatus(o.deadline, now) === "expired") return false;
     return true;

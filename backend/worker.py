@@ -25,6 +25,7 @@ def build_fields(opp, row, dedup_key: str, model_name: str) -> dict:
         "link": opp.link or "",
         "location": opp.location or "",
         "remote": bool(opp.remote),
+        "categories": list(opp.categories or ["other"]),
         "source_server": row["server_id"],
         "source_servers": row.get("server_name") or row["server_id"],
         "source_channel": row["channel_id"],

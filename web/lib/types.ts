@@ -15,4 +15,5 @@ export interface Opportunity {
   dateSeen: string | null;
   dedupKey: string;
   sourceServers: string[];
+  categories: string[];
 }

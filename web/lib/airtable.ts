@@ -20,6 +20,9 @@ export function mapRecord(fields: Record<string, unknown>): Opportunity {
     sourceChannel: str(fields.source_channel),
     dateSeen: strOrNull(fields.date_seen),
     dedupKey: str(fields.dedup_key),
+    categories: Array.isArray(fields.categories)
+      ? fields.categories.filter((c): c is string => typeof c === "string")
+      : [],
     sourceServers: str(fields.source_servers)
       .split(",")
       .map((s) => s.trim())

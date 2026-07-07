@@ -124,3 +124,12 @@ describe("source_servers attribution", () => {
     expect(mapRecord({ title: "X" }).sourceServers).toEqual([]);
   });
 });
+
+describe("categories", () => {
+  it("parses the multi-select array", () => {
+    expect(mapRecord({ title: "X", categories: ["tech", "gov"] }).categories).toEqual(["tech", "gov"]);
+  });
+  it("defaults to empty", () => {
+    expect(mapRecord({ title: "X" }).categories).toEqual([]);
+  });
+});
