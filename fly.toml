@@ -9,7 +9,6 @@ primary_region = "iad"
 [env]
   RAW_DB_PATH = "/data/raw.db"
   SUBSCRIBER_DB_PATH = "/data/subscribers.db"
-  FEEDBACK_DB_PATH = "/data/feedback.db"
   CHANNEL_CONFIG_PATH = "/data/channels.json"
   # Bot and API share the machine; forward loopback, not over the internet.
   INGEST_BASE_URL = "http://127.0.0.1:8080"
