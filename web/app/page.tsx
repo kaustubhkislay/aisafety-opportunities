@@ -23,10 +23,13 @@ export default async function Home() {
       <main className="board px-4 py-6 sm:px-6">
       <header className="mb-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
-            AI Safety Opportunities
-          </h1>
-          <div className="flex flex-wrap items-center gap-2">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
+              AI Safety Opportunities
+            </h1>
+            <p className="mt-0.5 text-[11px] text-[var(--muted)]">A waisi production</p>
+          </div>
+          <div className="flex flex-col items-start gap-2 lg:items-end">
             <SubscribeForm />
             <a
               href={INSTALL_URL}
@@ -58,8 +61,6 @@ export default async function Home() {
         <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
         {" · "}
         <a href="/terms" className="hover:text-[var(--brand-hover)]">Terms</a>
-        {" · "}
-        <Link href="/partners" className="hover:text-[var(--brand-hover)]">Partners</Link>
         {" · "}
         <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="hover:text-[var(--brand-hover)]">
           Open source
