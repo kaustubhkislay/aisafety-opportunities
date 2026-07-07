@@ -160,3 +160,20 @@ describe("category badges and filter", () => {
     expect(screen.queryByText("Techy")).not.toBeInTheDocument();
   });
 });
+
+describe("group precedence", () => {
+  it("closing-soon supersedes newly-added", () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          // first seen today AND closing within the week
+          opp({ title: "Urgent Fresh", deadline: "2026-06-28", dateSeen: "2026-06-26", dedupKey: "uf" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: /closing this week/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /newly added/i })).not.toBeInTheDocument();
+    expect(screen.getAllByText("Urgent Fresh")).toHaveLength(1);
+  });
+});
