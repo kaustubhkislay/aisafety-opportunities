@@ -60,10 +60,10 @@ export default async function Home() {
           A{" "}
           <a href="https://waisi.org" target="_blank" rel="noopener noreferrer">
             <Image
-              src="/waisi-logo.png"
+              src="/waisi-full.png"
               alt="waisi"
-              width={20}
-              height={20}
+              width={455}
+              height={96}
               className="inline h-4 w-auto align-[-3px]"
             />
           </a>{" "}
