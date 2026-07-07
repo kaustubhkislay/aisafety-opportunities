@@ -184,11 +184,11 @@ export function OpportunityList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
-  const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]";
+  const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] lg:w-full";
 
   return (
     <div className="lg:flex lg:items-start lg:gap-8">
-      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm lg:top-4 lg:order-2 lg:mx-0 lg:w-52 lg:shrink-0 lg:flex-col lg:items-stretch lg:rounded lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm lg:top-4 lg:order-2 lg:mx-0 lg:mt-12 lg:w-52 lg:shrink-0 lg:flex-col lg:items-stretch lg:rounded lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         <input
           type="search"
           placeholder="Search the board…"
