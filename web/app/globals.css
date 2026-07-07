@@ -42,7 +42,7 @@ body {
 }
 
 .font-display {
-  font-family: "rl-limo", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-bricolage), "rl-limo", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 a {

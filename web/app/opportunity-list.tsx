@@ -39,18 +39,34 @@ function deadlineChip(deadline: string | null, now: Date): { text: string; urgen
   return { text: `closes ${MONTHS[due.getUTCMonth()]} ${due.getUTCDate()}`, urgent: false };
 }
 
-function Card({ o, now, index }: { o: Opportunity; now: Date; index: number }) {
+function Pin({ urgent }: { urgent: boolean }) {
+  const head = urgent ? "#d97706" : "var(--brand)";
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 32"
+      className="absolute -top-3 left-1/2 h-7 w-5 -translate-x-1/2 drop-shadow-[0_1px_1px_rgba(28,25,23,0.35)]"
+    >
+      {/* needle */}
+      <path d="M12 17 L12 30" stroke="#8a8378" strokeWidth="1.6" strokeLinecap="round" />
+      {/* collar */}
+      <rect x="9.2" y="14.5" width="5.6" height="3.4" rx="1" fill={head} opacity="0.85" />
+      {/* head */}
+      <circle cx="12" cy="9" r="6.5" fill={head} />
+      {/* highlight */}
+      <circle cx="9.6" cy="6.8" r="2" fill="#ffffff" opacity="0.4" />
+    </svg>
+  );
+}
+
+function Card({ o, now }: { o: Opportunity; now: Date }) {
   const chip = deadlineChip(o.deadline, now);
   const badge = TYPE_COLORS[o.type] ?? TYPE_COLORS.other;
-  const tilt = index % 2 === 0 ? "-rotate-[0.4deg]" : "rotate-[0.4deg]";
   return (
     <li
-      className={`relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-5 shadow-[0_1px_4px_rgba(28,25,23,0.12)] transition-transform hover:rotate-0 ${tilt}`}
+      className="relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-6 shadow-[0_1px_4px_rgba(28,25,23,0.12)]"
     >
-      <span
-        aria-hidden
-        className={`absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full shadow-sm ${chip.urgent ? "bg-amber-500" : "bg-[var(--brand)]"}`}
-      />
+      <Pin urgent={chip.urgent} />
       <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
         <span className={`font-medium ${badge}`}>{o.type}</span>
         <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
@@ -98,8 +114,8 @@ function Section({
         {title}
       </h2>
       <ul className="grid grid-cols-1 gap-5 pt-1.5 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((o, i) => (
-          <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} index={i} />
+        {items.map((o) => (
+          <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
         ))}
       </ul>
     </section>
