@@ -25,6 +25,11 @@ export default async function PartnersPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      <nav className="mb-6 text-sm text-[var(--muted)]">
+        <Link href="/" className="hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
+        </Link>
+      </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
       <p className="mt-2 text-[var(--muted)]">
         Every opportunity on the board is posted by a real community — these are the servers
@@ -60,11 +65,6 @@ export default async function PartnersPage() {
         </a>
       </section>
 
-      <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <Link href="/" className="hover:text-[var(--brand-hover)]">
-          {"< Back to the board"}
-        </Link>
-      </footer>
     </main>
   );
 }

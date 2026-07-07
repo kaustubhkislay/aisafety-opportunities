@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { loadOpportunitiesResult } from "@/lib/airtable";
 import { OpportunityList } from "@/app/opportunity-list";
 import { SubscribeForm } from "@/app/subscribe-form";
@@ -55,7 +56,19 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <span>A waisi production</span>
+        <span>
+          A{" "}
+          <a href="https://waisi.org" target="_blank" rel="noopener noreferrer">
+            <Image
+              src="/waisi-logo.png"
+              alt="waisi"
+              width={20}
+              height={20}
+              className="inline h-4 w-auto align-[-3px]"
+            />
+          </a>{" "}
+          production
+        </span>
         {" / "}
         <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
         {" / "}
