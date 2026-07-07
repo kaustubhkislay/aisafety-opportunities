@@ -11,14 +11,14 @@ const TYPES: OppType[] = [
 ];
 
 const TYPE_COLORS: Record<string, string> = {
-  job: "bg-slate-100 text-slate-700",
-  internship: "bg-sky-100 text-sky-800",
-  fellowship: "bg-[var(--brand-tint)] text-[var(--brand)]",
-  grant: "bg-green-100 text-green-800",
-  event: "bg-purple-100 text-purple-800",
-  course: "bg-teal-100 text-teal-800",
-  "reading-group": "bg-rose-100 text-rose-800",
-  other: "bg-stone-100 text-stone-600",
+  job: "text-slate-600",
+  internship: "text-sky-700",
+  fellowship: "text-[var(--brand)]",
+  grant: "text-green-700",
+  event: "text-purple-700",
+  course: "text-teal-700",
+  "reading-group": "text-rose-700",
+  other: "text-stone-500",
 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -45,17 +45,22 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
   const badge = TYPE_COLORS[o.type] ?? TYPE_COLORS.other;
   return (
     <li
-      className={`flex flex-col gap-2 rounded-lg bg-[var(--card)] p-4 shadow-sm ${chip.urgent ? "border-t-2 border-amber-500" : ""}`}
+      className={`flex flex-col gap-1.5 pt-3 ${chip.urgent ? "border-t-2 border-amber-500" : "border-t border-[var(--edge)]"}`}
     >
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className={`rounded-full px-2 py-0.5 font-medium ${badge}`}>{o.type}</span>
+      <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
+        <span className={`font-medium ${badge}`}>{o.type}</span>
         <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
           {chip.text}
         </span>
       </div>
-      <h3 className="font-display text-base font-semibold leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
+      <h3 className="font-display text-[17px] font-medium leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
         {o.link ? (
-          <a href={o.link} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--brand)]">
+          <a
+            href={o.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors hover:text-[var(--brand-hover)]"
+          >
             {o.title}
           </a>
         ) : (
@@ -66,7 +71,7 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
         {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" · ")}
       </p>
       {o.sourceServers.length > 0 && (
-        <p className="mt-auto w-fit border border-dotted border-[var(--muted)] px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[var(--muted)]">
+        <p className="mt-auto text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
           found in {o.sourceServers.join(", ")}
         </p>
       )}
@@ -145,7 +150,7 @@ export function OpportunityList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
-  const pill = "rounded-full border border-[var(--edge)] bg-[var(--card)] px-3 py-1.5 text-sm";
+  const control = "border-b border-[var(--edge)] bg-transparent px-1 py-1.5 text-sm focus:border-[var(--brand)] focus:outline-none";
 
   return (
     <div>
@@ -155,9 +160,9 @@ export function OpportunityList({
           placeholder="Search the board…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`${pill} min-w-[10rem] flex-1`}
+          className={`${control} min-w-[10rem] flex-1`}
         />
-        <select value={type} onChange={(e) => setType(e.target.value)} className={pill} aria-label="Filter by type">
+        <select value={type} onChange={(e) => setType(e.target.value)} className={control} aria-label="Filter by type">
           <option value="">All types</option>
           {TYPES.map((t) => (
             <option key={t} value={t}>{t}</option>
@@ -167,7 +172,7 @@ export function OpportunityList({
           <select
             value={server}
             onChange={(e) => setServer(e.target.value)}
-            className={pill}
+            className={control}
             aria-label="Filter by community"
           >
             <option value="">All communities</option>
@@ -187,7 +192,7 @@ export function OpportunityList({
         <button
           type="button"
           onClick={() => setSubscribeOpen((v) => !v)}
-          className={`${pill} ml-auto font-medium text-[var(--brand)] hover:bg-[var(--brand-tint)]`}
+          className="ml-auto text-sm font-medium text-[var(--brand)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)] active:translate-y-px"
         >
           ✉ Daily digest
         </button>

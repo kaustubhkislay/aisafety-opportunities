@@ -28,9 +28,9 @@ export default async function Home() {
         <p className="mt-1 text-sm text-[var(--muted)]">
           Jobs, fellowships, grants, events, and courses — posted by AI-safety communities,
           curated automatically.{" "}
-          <a href={INSTALL_URL} className="underline hover:text-[var(--brand)]">Add your community</a>
+          <a href={INSTALL_URL} className="text-[var(--brand-link)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)]">Add your community</a>
           {" · "}
-          <a href="/feed.xml" className="underline hover:text-[var(--brand)]">RSS</a>
+          <a href="/feed.xml" className="text-[var(--brand-link)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)]">RSS</a>
         </p>
       </header>
 
@@ -42,11 +42,11 @@ export default async function Home() {
       )}
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <a href="/privacy" className="underline hover:text-[var(--brand)]">Privacy</a>
+        <a href="/privacy" className="text-[var(--brand-link)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)]">Privacy</a>
         {" · "}
-        <a href="/terms" className="underline hover:text-[var(--brand)]">Terms</a>
+        <a href="/terms" className="text-[var(--brand-link)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)]">Terms</a>
         {" · "}
-        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="underline hover:text-[var(--brand)]">
+        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="text-[var(--brand-link)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)]">
           Open source
         </a>
       </footer>

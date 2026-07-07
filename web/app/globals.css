@@ -3,11 +3,12 @@
 :root {
   /* WAISI design system: cream, charcoal, violet, Lora. */
   --background: #fff9f0;
-  --foreground: #2d2a26;
+  --foreground: #1a1a1a;
   --card: #fffdf8;
   --muted: #6f6a62;
   --edge: #e8dcc8;
   --brand: #6b46c1;
+  --brand-hover: #553496;
   --brand-link: #8b5cf6;
   --brand-tint: #ede9fe;
 }
@@ -27,6 +28,7 @@
     --muted: #b5aea3;
     --edge: #555047;
     --brand: #c4b5fd;
+    --brand-hover: #ddd3ff;
     --brand-link: #c4b5fd;
     --brand-tint: #443a63;
   }
