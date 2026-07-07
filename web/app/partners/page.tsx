@@ -39,8 +39,8 @@ export default async function PartnersPage() {
       </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
 
-      <ul className="mt-8 space-y-4">
-        {partners.map(([name, count]) => (
+      <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+        {partners.map(([name]) => (
           <li key={name} className="flex items-center gap-3">
             {LOGOS[name] && (
               <Image
@@ -52,13 +52,10 @@ export default async function PartnersPage() {
               />
             )}
             <span className="font-display text-lg font-medium">{name}</span>
-            <span className="text-sm text-[var(--muted)]">
-              {count} open {count === 1 ? "opportunity" : "opportunities"}
-            </span>
           </li>
         ))}
         {partners.length === 0 && (
-          <li className="text-[var(--muted)]">No communities connected yet.</li>
+          <li className="col-span-full text-[var(--muted)]">No communities connected yet.</li>
         )}
       </ul>
 
