@@ -9,6 +9,11 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      <nav className="mb-6 text-sm text-gray-500">
+        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
+        </Link>
+      </nav>
       <h1 className="text-2xl font-bold">Terms of Use</h1>
       <p className="mt-2 text-gray-600">Last updated 2026-07-05.</p>
 
@@ -53,10 +58,6 @@ export default function TermsPage() {
       </section>
 
       <footer className="mt-12 text-sm text-gray-500">
-        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
-          Home
-        </Link>{" "}
-        ·{" "}
         <Link href="/privacy" className="transition-colors hover:text-[var(--brand-hover)]">
           Privacy
         </Link>
