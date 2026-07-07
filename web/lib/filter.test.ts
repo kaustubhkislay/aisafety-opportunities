@@ -7,7 +7,7 @@ const NOW = new Date("2026-06-26T12:00:00Z");
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: null, link: null, location: null,
-    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [],
+    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [], description: "",
     ...p,
   };
 }
