@@ -2,64 +2,127 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Theory of change — AI Safety Opportunities",
-  description: "Why this board exists and how it helps people enter AI safety.",
+  title: "ToC — AI Safety Opportunities",
+  description: "Why this board exists and how it improves opportunity distribution in AI safety.",
 };
+
+function H({ children }: { children: React.ReactNode }) {
+  return <h2 className="font-display mt-8 text-xl font-semibold">{children}</h2>;
+}
+
+function B({ children }: { children: React.ReactNode }) {
+  return <li className="ml-5 list-disc leading-relaxed">{children}</li>;
+}
 
 export default function TheoryOfChangePage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <nav className="mb-6 text-sm text-[var(--muted)]">
-        <Link href="/" className="hover:text-[var(--brand-hover)]">
-          {"< Back to the board"}
-        </Link>
-      </nav>
+    <main className="mx-auto max-w-3xl px-4 py-10 text-[15px]">
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Theory of change</h1>
 
-      <section className="mt-8 space-y-4 text-[15px] leading-relaxed">
-        <h2 className="font-display text-xl font-semibold">The problem</h2>
-        <p>
-          Most AI-safety opportunities — fellowships, research programs, grants, jobs, reading
-          groups — are announced inside private community Discords and Slacks. Discovery is gated
-          by your social graph: if you are not already in the right servers, you do not hear about
-          the openings, and deadlines pass silently. The people this hurts most are exactly the
-          people the field wants to attract — newcomers who are not yet plugged in.
-        </p>
+      <H>Why does this exist when 80k Hours and AISafety.com job boards exist?</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>
+          Those boards list formal, org-published jobs. A whole layer of opportunities — uni
+          programs, fellowships, reading groups, events, micro-grants, &ldquo;my lab is taking one
+          intern&rdquo; posts — is shared only inside AIS community Discords and Slacks and never
+          reaches them.
+        </B>
+        <B>
+          These opportunities should be distributed to as many capable candidates as possible —
+          not just to whoever happens to be in the right server.
+        </B>
+      </ul>
 
-        <h2 className="font-display text-xl font-semibold">The intervention</h2>
-        <p>
-          Communities install a small open-source bot that reads only their opportunities channel.
-          An automated pipeline filters chatter, strips personal information, extracts structured
-          listings, merges duplicates across communities, and publishes everything to this public
-          board within seconds — with a daily email digest of what is new.
-        </p>
+      <H>The distribution problem</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>
+          Doing distribution thoroughly today means joining every uni group&rsquo;s Discord/Slack
+          and posting each opportunity individually. It is tedious, and nobody does it
+          consistently.
+        </B>
+        <B>
+          It also can&rsquo;t be automated by scraping — that violates platform ToS. Our bot is
+          the compliant version: <strong>owner-installed</strong>, using Discord&rsquo;s official
+          API, with two read-only permissions and explicit consent per community.
+        </B>
+      </ul>
 
-        <h2 className="font-display text-xl font-semibold">The mechanism</h2>
-        <p>
-          Aggregation turns many gated feeds into one open one. That lowers the cost of staying
-          informed from &ldquo;be in ten servers and read them daily&rdquo; to &ldquo;check one
-          page or read one email.&rdquo; More people see more opportunities earlier; applications
-          go up; programs and orgs fill roles from a wider talent pool; and the field&rsquo;s
-          on-ramps get used by people beyond the existing network.
-        </p>
+      <H>What we do</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>
+          Every opportunity posting is hosted and visible to prospective candidates —{" "}
+          <strong>as quickly as possible</strong>: an opportunity is on the board about 20 seconds
+          after it&rsquo;s posted.
+        </B>
+        <B>
+          <strong>As digestibly as possible</strong>: one page with search, filters, and deadline
+          grouping; a daily email digest of only what&rsquo;s new (silent on empty days); RSS.
+        </B>
+        <B>
+          Deduplication across communities: the same fellowship posted in eight servers becomes
+          one listing, attributed to the communities it came from — aggregation, not mirroring.
+        </B>
+      </ul>
 
-        <h2 className="font-display text-xl font-semibold">Why communities cooperate</h2>
-        <p>
-          Because the trust costs are engineered down: the code is fully open source, privacy tags
-          are honored inside the community&rsquo;s own server before anything is transmitted,
-          posting <code>[private]</code> or reacting 🔒 removes an item, and uninstalling the bot
-          deletes everything that community contributed. Sharing opportunities is something
-          communities already want — this makes it free.
-        </p>
+      <H>Privacy and control</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>
+          Communities can keep opportunities private: tag a post <code>[private]</code> or{" "}
+          <code>[uni-reserved]</code> and it is dropped <em>inside your server</em> — it is never
+          transmitted and never enters our database.
+        </B>
+        <B>
+          Changed your mind after posting? React 🔒 or edit a privacy tag in — the item is deleted
+          from our database and disappears from the site within seconds.
+        </B>
+        <B>
+          Removing the bot deletes everything your community ever contributed.{" "}
+          <strong>Uninstall means gone.</strong>
+        </B>
+        <B>
+          The entire pipeline is{" "}
+          <a
+            href="https://github.com/kaustubhkislay/aisafety-opportunities"
+            className="text-[var(--brand-link)] transition-colors hover:text-[var(--brand-hover)]"
+          >
+            open source
+          </a>
+          , and there is no private data product — trust the code, not the operator.
+        </B>
+      </ul>
 
-        <h2 className="font-display text-xl font-semibold">What we watch</h2>
-        <p>
-          Communities connected, opportunities live, how quickly new postings reach the board,
-          digest subscribers, and click-throughs to applications. If the board grows those numbers
-          without compromising a single privacy promise, the theory is working.
-        </p>
-      </section>
+      <H>Guardrails</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>
+          Personal contact details (emails, phone numbers, &ldquo;DM me&rdquo;) are stripped
+          before publishing.
+        </B>
+        <B>Link shorteners and suspicious domains are withheld rather than published.</B>
+        <B>Anything can be pulled from the board instantly by the community that posted it.</B>
+      </ul>
 
+      <H>Why add your community</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>A two-minute install; nothing about how your community posts changes afterward.</B>
+        <B>
+          A low-cost way to improve the distribution of opportunities within the AI-safety
+          community — your postings reach every capable candidate watching the board, and your
+          members see everyone else&rsquo;s.
+        </B>
+      </ul>
+
+      <H>What we watch</H>
+      <ul className="mt-2 space-y-1.5">
+        <B>Communities connected, opportunities live, post-to-board latency.</B>
+        <B>Digest subscribers and click-throughs to applications.</B>
+        <B>Zero privacy-promise violations — growth only counts if the trust holds.</B>
+      </ul>
+
+      <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
+        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
+        </Link>
+      </footer>
     </main>
   );
 }
