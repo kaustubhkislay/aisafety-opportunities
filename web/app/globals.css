@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Restrained paper: warm page, warm-white cards, ink text. */
+  --background: #faf9f6;
+  --foreground: #1c1917;
+  --card: #fffdf9;
+  --muted: #78716c;
+  --edge: #e7e2da;
 }
 
 @theme inline {
@@ -14,13 +18,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1c1917;
+    --foreground: #e7e5e4;
+    --card: #292524;
+    --muted: #a8a29e;
+    --edge: #44403c;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
 }
