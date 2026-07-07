@@ -63,3 +63,24 @@ describe("category searching across fields", () => {
     expect(out.map((o) => o.title)).toEqual(["A"]);
   });
 });
+
+describe("sorters (per 80k / aisafety.com analysis)", () => {
+  it("sorts newest-first by dateSeen when requested", () => {
+    const items = [
+      opp({ title: "Older", dateSeen: "2026-06-20", deadline: "2026-07-01", dedupKey: "1" }),
+      opp({ title: "Newest", dateSeen: "2026-06-26", deadline: "2026-09-01", dedupKey: "2" }),
+    ];
+    expect(filterAndSort(items, { sortBy: "newest" }, NOW).map((o) => o.title)).toEqual([
+      "Newest",
+      "Older",
+    ]);
+  });
+
+  it("filters by location", () => {
+    const items = [
+      opp({ title: "Bay", location: "Berkeley, CA", dedupKey: "1" }),
+      opp({ title: "UK", location: "London", dedupKey: "2" }),
+    ];
+    expect(filterAndSort(items, { locations: ["London"] }, NOW).map((o) => o.title)).toEqual(["UK"]);
+  });
+});

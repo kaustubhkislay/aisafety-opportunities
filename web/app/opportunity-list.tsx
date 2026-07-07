@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import type { Opportunity, OppType } from "@/lib/types";
 import { filterAndSort } from "@/lib/filter";
 import { deriveStatus } from "@/lib/status";
-import { SubscribeForm } from "@/app/subscribe-form";
 
 const TYPES: OppType[] = [
   "job", "internship", "fellowship", "grant", "event", "course", "reading-group", "other",
@@ -112,13 +111,13 @@ export function OpportunityList({
   const now = new Date(nowISO);
   const [text, setText] = useState("");
   const [type, setType] = useState("");
-  const [server, setServer] = useState("");
+  const [sortBy, setSortBy] = useState<"deadline" | "newest">("deadline");
+  const [location, setLocation] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showPast, setShowPast] = useState(false);
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
 
-  const servers = useMemo(
-    () => Array.from(new Set(opportunities.flatMap((o) => o.sourceServers))).sort(),
+  const locations = useMemo(
+    () => Array.from(new Set(opportunities.map((o) => o.location).filter((l): l is string => !!l))).sort(),
     [opportunities],
   );
 
@@ -126,11 +125,11 @@ export function OpportunityList({
     () =>
       filterAndSort(
         opportunities,
-        { text, types: type ? [type] : [], servers: server ? [server] : [], remoteOnly, showPast },
+        { text, types: type ? [type] : [], locations: location ? [location] : [], sortBy, remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, type, server, remoteOnly, showPast, nowISO],
+    [opportunities, text, type, location, sortBy, remoteOnly, showPast, nowISO],
   );
 
   const groups = useMemo(() => {
@@ -171,19 +170,28 @@ export function OpportunityList({
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
-        {servers.length > 0 && (
+        {locations.length > 0 && (
           <select
-            value={server}
-            onChange={(e) => setServer(e.target.value)}
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
             className={control}
-            aria-label="Filter by community"
+            aria-label="Filter by location"
           >
-            <option value="">All communities</option>
-            {servers.map((s) => (
-              <option key={s} value={s}>{s}</option>
+            <option value="">All locations</option>
+            {locations.map((l) => (
+              <option key={l} value={l}>{l}</option>
             ))}
           </select>
         )}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "deadline" | "newest")}
+          className={control}
+          aria-label="Sort by"
+        >
+          <option value="deadline">Closing soonest</option>
+          <option value="newest">Newest first</option>
+        </select>
         <label className="flex items-center gap-1.5 text-sm">
           <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
           Remote only
@@ -192,20 +200,7 @@ export function OpportunityList({
           <input type="checkbox" checked={showPast} onChange={(e) => setShowPast(e.target.checked)} />
           Show past
         </label>
-        <button
-          type="button"
-          onClick={() => setSubscribeOpen((v) => !v)}
-          className="w-full rounded bg-[var(--brand)] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px sm:ml-auto sm:w-auto sm:py-1.5"
-        >
-          ✉ Get the daily digest
-        </button>
       </div>
-
-      {subscribeOpen && (
-        <div className="mb-6">
-          <SubscribeForm />
-        </div>
-      )}
 
       <Section title="Newly added" items={groups.fresh} now={now} id="new" />
       <Section title="Closing this week" items={groups.closing} now={now} accent id="closing" />

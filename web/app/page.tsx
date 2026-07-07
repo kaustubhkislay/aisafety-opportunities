@@ -1,5 +1,6 @@
 import { loadOpportunitiesResult } from "@/lib/airtable";
 import { OpportunityList } from "@/app/opportunity-list";
+import { SubscribeForm } from "@/app/subscribe-form";
 import Link from "next/link";
 
 export const revalidate = 3600;
@@ -7,8 +8,8 @@ export const revalidate = 3600;
 const INSTALL_URL =
   "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
 
-// Anonymous Google Form; the Feedback link renders once this is set.
-const FEEDBACK_FORM_URL = "";
+const FEEDBACK_FORM_URL =
+  "https://docs.google.com/forms/d/1VNied9pCE5Fivrif-bMELj3ElNhY2HaCqN1VritakBE/viewform";
 
 const toc =
   "text-[11px] uppercase tracking-[0.18em] text-[var(--muted)] transition-colors hover:text-[var(--brand-hover)]";
@@ -20,24 +21,26 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <header className="mb-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
             AI Safety Opportunities
           </h1>
-          <a
-            href={INSTALL_URL}
-            className="w-fit rounded border-2 border-[var(--brand)] px-3 py-1.5 text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
-          >
-            + Add your community
-          </a>
+          <div className="flex flex-wrap items-center gap-2">
+            <SubscribeForm />
+            <a
+              href={INSTALL_URL}
+              className="rounded border-2 border-[var(--brand)] px-3 py-1.5 text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
+            >
+              + Add your community
+            </a>
+          </div>
         </div>
         <nav aria-label="Contents" className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
           <Link href="/partners" className={toc}>Partner communities</Link>
-          {FEEDBACK_FORM_URL && (
-            <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
-              Feedback
-            </a>
-          )}
+          <Link href="/theory-of-change" className={toc}>Theory of change</Link>
+          <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
+            Feedback
+          </a>
           <a href="/feed.xml" className={toc}>RSS</a>
         </nav>
       </header>

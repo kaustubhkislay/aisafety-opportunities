@@ -5,6 +5,8 @@ export interface Query {
   text?: string;
   types?: string[];
   servers?: string[];
+  locations?: string[];
+  sortBy?: "deadline" | "newest";
   remoteOnly?: boolean;
   showPast?: boolean;
 }
@@ -22,10 +24,20 @@ export function filterAndSort(items: Opportunity[], query: Query, now: Date): Op
     if (text && !haystack.includes(text)) return false;
     if (types.length > 0 && !types.includes(o.type)) return false;
     if (servers.length > 0 && !(o.sourceServers ?? []).some((s) => servers.includes(s))) return false;
+    if ((query.locations ?? []).length > 0 && !(query.locations ?? []).includes(o.location ?? "")) return false;
     if (query.remoteOnly && !o.remote) return false;
     if (!query.showPast && deriveStatus(o.deadline, now) === "expired") return false;
     return true;
   });
+
+  if (query.sortBy === "newest") {
+    return filtered.sort((a, b) => {
+      const da = a.dateSeen ?? "";
+      const db = b.dateSeen ?? "";
+      if (da !== db) return da > db ? -1 : 1;
+      return (a.deadline ?? "9999") < (b.deadline ?? "9999") ? -1 : 1;
+    });
+  }
 
   return filtered.sort((a, b) => {
     if (a.deadline && b.deadline) {

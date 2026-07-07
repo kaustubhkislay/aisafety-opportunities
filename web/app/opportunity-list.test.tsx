@@ -50,20 +50,25 @@ describe("server attribution", () => {
   });
 });
 
-describe("community filter", () => {
-  it("offers the communities present and filters by selection", async () => {
+describe("location filter and sort", () => {
+  it("filters by location", async () => {
     render(
       <OpportunityList
         opportunities={[
-          opp({ title: "From WAISI", sourceServers: ["WAISI"], dedupKey: "a" }),
-          opp({ title: "From Hub", sourceServers: ["AI Safety Hub"], dedupKey: "b" }),
+          opp({ title: "Bay Role", location: "Berkeley, CA", dedupKey: "a" }),
+          opp({ title: "UK Role", location: "London", dedupKey: "b" }),
         ]}
         nowISO={NOW_ISO}
       />,
     );
-    await userEvent.selectOptions(screen.getByLabelText("Filter by community"), "WAISI");
-    expect(screen.getByText("From WAISI")).toBeInTheDocument();
-    expect(screen.queryByText("From Hub")).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText("Filter by location"), "London");
+    expect(screen.getByText("UK Role")).toBeInTheDocument();
+    expect(screen.queryByText("Bay Role")).not.toBeInTheDocument();
+  });
+
+  it("offers newest-first sorting", () => {
+    render(<OpportunityList opportunities={[opp({ title: "X", dedupKey: "x" })]} nowISO={NOW_ISO} />);
+    expect(screen.getByLabelText("Sort by")).toBeInTheDocument();
   });
 });
 
