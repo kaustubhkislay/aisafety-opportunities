@@ -97,7 +97,17 @@ async def slack_events(request: Request, background: BackgroundTasks) -> dict:
     if isinstance(action, Ingest):
         # Membership alone is not consent: the name filter gates the live path
         # exactly like backfill (invited AND name contains "opportunities").
-        if await _scope.in_scope(_web, install["bot_token"], action.msg["channel_id"]):
+        # A failed scope lookup must not 500 (sustained non-200s make Slack
+        # disable event delivery); consent unverified → drop, ACK, and let the
+        # next delivery retry the lookup.
+        try:
+            in_scope = await _scope.in_scope(_web, install["bot_token"],
+                                             action.msg["channel_id"])
+        except Exception:
+            logger.exception("slack scope check failed channel=%s",
+                             action.msg["channel_id"])
+            in_scope = False
+        if in_scope:
             _store.insert_message(action.msg)
         else:
             logger.info("slack drop team=%s reason=out-of-scope channel=%s",
@@ -155,11 +165,15 @@ async def slack_oauth_callback(code: str | None = None) -> HTMLResponse:
         logger.warning("slack oauth exchange failed: %s", exc.error)
         return HTMLResponse(f"<p>Slack install failed: {exc.error}</p>", status_code=502)
     team = data.get("team") or {}
+    if not team.get("id") or not data.get("access_token") or not data.get("bot_user_id"):
+        logger.warning("slack oauth response missing team/token fields")
+        return HTMLResponse("<p>Slack install failed: malformed OAuth response.</p>",
+                            status_code=502)
     _tokens.save(
-        team.get("id", ""),
+        team["id"],
         team.get("name", ""),
-        data.get("access_token", ""),
-        data.get("bot_user_id", ""),
+        data["access_token"],
+        data["bot_user_id"],
     )
     logger.info("slack installed team=%s", team.get("id"))
     return HTMLResponse(

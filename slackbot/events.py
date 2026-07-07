@@ -45,7 +45,7 @@ def translate(
         subtype = event.get("subtype")
         if subtype == "message_changed":
             inner = event.get("message") or {}
-            excluded, _reason = should_exclude(inner.get("text"), "public")
+            excluded, _ = should_exclude(inner.get("text"), "public")
             if excluded:
                 return Retract(
                     message_id=message_id(team_id, event.get("channel", ""), inner.get("ts", ""))

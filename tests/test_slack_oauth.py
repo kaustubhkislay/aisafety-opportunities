@@ -67,3 +67,15 @@ def test_callback_oauth_error_is_502(tmp_path, monkeypatch):
     monkeypatch.setattr(slack_module._web, "oauth_access", failing_oauth_access)
     resp = client.get("/slack/oauth/callback?code=bad")
     assert resp.status_code == 502
+
+
+def test_callback_malformed_response_is_502_and_not_saved(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+
+    async def missing_team_oauth_access(client_id, client_secret, code, redirect_uri):
+        return {"ok": True, "access_token": "xoxb-new", "bot_user_id": "U77"}
+
+    monkeypatch.setattr(slack_module._web, "oauth_access", missing_team_oauth_access)
+    resp = client.get("/slack/oauth/callback?code=thecode")
+    assert resp.status_code == 502
+    assert slack_module._tokens.get("") is None

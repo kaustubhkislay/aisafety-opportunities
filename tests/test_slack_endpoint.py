@@ -175,3 +175,20 @@ def test_bot_invite_triggers_backfill(tmp_path, monkeypatch):
     assert calls == {"channel": "C7", "token": "xoxb-1"}
     # fresh invite must invalidate any stale negative scope cache for the channel
     assert scope.invalidated == ["C7"]
+
+
+def test_scope_check_failure_acks_and_drops(tmp_path, monkeypatch):
+    # A Slack API failure during the scope lookup must not 500 (Slack would
+    # eventually disable event delivery) — drop the message and ACK.
+    client, slack_module, _, scope = _setup(tmp_path, monkeypatch)
+
+    async def failing_in_scope(web, token, channel_id):
+        raise RuntimeError("conversations.info blew up")
+
+    monkeypatch.setattr(scope, "in_scope", failing_in_scope)
+    resp = _post(client, _event({
+        "type": "message", "channel": "C1", "user": "U42",
+        "text": "Grant: https://example.org", "ts": "6.0",
+    }))
+    assert resp.status_code == 200
+    assert slack_module._store.get_messages() == []
