@@ -39,17 +39,13 @@ describe("OpportunityList", () => {
 });
 
 describe("server attribution", () => {
-  it("shows which communities an opportunity was found in", () => {
+  it("does not show found-in stamps on cards (moved to /partners)", () => {
     render(
       <OpportunityList
-        opportunities={[opp({ title: "ML Fellow", sourceServers: ["AI Safety Hub", "WAISI"] })]}
+        opportunities={[opp({ title: "ML Fellow", sourceServers: ["AI Safety Hub"] })]}
         nowISO={NOW_ISO}
       />,
     );
-    expect(screen.getByText(/found in AI Safety Hub, WAISI/)).toBeInTheDocument();
-  });
-  it("omits attribution when no community is recorded", () => {
-    render(<OpportunityList opportunities={[opp({ title: "X" })]} nowISO={NOW_ISO} />);
     expect(screen.queryByText(/found in/)).not.toBeInTheDocument();
   });
 });
@@ -83,7 +79,7 @@ describe("board grouping", () => {
       />,
     );
     expect(screen.getByRole("heading", { name: /closing this week/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^open \(/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^open$/i })).toBeInTheDocument();
   });
 
   it("shows a Past section only when showPast is on", async () => {
@@ -110,5 +106,22 @@ describe("board grouping", () => {
       />,
     );
     expect(screen.getByText(/3 days left/)).toBeInTheDocument();
+  });
+});
+
+describe("newly added", () => {
+  it("shows a Newly added section for items first seen today, without duplicating them below", () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Fresh Today", deadline: "2026-09-01", dateSeen: "2026-06-26", dedupKey: "f" }),
+          opp({ title: "Older", deadline: "2026-09-01", dateSeen: "2026-06-20", dedupKey: "o" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: /newly added/i })).toBeInTheDocument();
+    expect(screen.getAllByText("Fresh Today")).toHaveLength(1);
+    expect(screen.getByText("Older")).toBeInTheDocument();
   });
 });
