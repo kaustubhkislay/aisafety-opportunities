@@ -142,7 +142,6 @@ export function OpportunityList({
   const now = new Date(nowISO);
   const [text, setText] = useState("");
   const [type, setType] = useState("");
-  const [sortBy, setSortBy] = useState<"deadline" | "newest">("deadline");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
@@ -157,11 +156,11 @@ export function OpportunityList({
     () =>
       filterAndSort(
         opportunities,
-        { text, types: type ? [type] : [], locations: location ? [location] : [], categories: category ? [category] : [], sortBy, remoteOnly, showPast },
+        { text, types: type ? [type] : [], locations: location ? [location] : [], categories: category ? [category] : [], remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, type, location, category, sortBy, remoteOnly, showPast, nowISO],
+    [opportunities, text, type, location, category, remoteOnly, showPast, nowISO],
   );
 
   const groups = useMemo(() => {
@@ -224,15 +223,6 @@ export function OpportunityList({
             ))}
           </select>
         )}
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "deadline" | "newest")}
-          className={control}
-          aria-label="Sort by"
-        >
-          <option value="deadline">Closing soonest</option>
-          <option value="newest">Newest first</option>
-        </select>
         <label className="flex items-center gap-1.5 text-sm">
           <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
           Remote only
