@@ -63,10 +63,15 @@ INK = "#1a1a1a"
 MUTED = "#6f6a62"
 
 
+_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
 def build_digest(
     opportunities: list[dict],
     unsubscribe_url: str,
     site_url: str = "https://aisopportunities.com",
+    today: date | None = None,
 ) -> dict:
     """Compose subject/html/text from already-filtered, already-sorted opportunities.
 
@@ -75,9 +80,12 @@ def build_digest(
     button, and a muted unsubscribe footer.
     """
     n = len(opportunities)
+    # Date-stamp the subject: identical subjects make Gmail thread consecutive
+    # digests and collapse near-identical bodies as quoted text (live finding).
+    stamp = f" · {_MONTHS[today.month - 1]} {today.day}" if today else ""
     subject = (
-        f"AI Safety Opportunities — {n} new" if opportunities
-        else "AI Safety Opportunities — digest"
+        f"AI Safety Opportunities — {n} new{stamp}" if opportunities
+        else f"AI Safety Opportunities — digest{stamp}"
     )
 
     if opportunities:
@@ -184,7 +192,7 @@ def run_digest(
     count = 0
     for email in subscriber_store.active_emails():
         url = f"{unsubscribe_base}?token={make_token(email, secret)}"
-        digest = build_digest(items, url)
+        digest = build_digest(items, url, today=today)
         sender(email, digest["subject"], digest["html"], digest["text"])
         count += 1
     log.info("digest: sent to %d subscriber(s), %d item(s)", count, len(items))
