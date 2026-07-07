@@ -58,25 +58,51 @@ def verify_token(token: str, secret: str) -> str | None:
 
 # --- digest body -----------------------------------------------------------
 
-def build_digest(opportunities: list[dict], unsubscribe_url: str) -> dict:
-    """Compose subject/html/text from already-filtered, already-sorted opportunities."""
+BRAND = "#6b46c1"
+INK = "#1a1a1a"
+MUTED = "#6f6a62"
+BOARD_BG = "#f5efe2"
+
+
+def build_digest(
+    opportunities: list[dict],
+    unsubscribe_url: str,
+    site_url: str = "https://aisopportunities.com",
+) -> dict:
+    """Compose subject/html/text from already-filtered, already-sorted opportunities.
+
+    HTML is a self-contained, inline-styled email (email clients ignore
+    stylesheets): branded header, one bordered block per item, a view-the-board
+    button, and a muted unsubscribe footer.
+    """
+    n = len(opportunities)
     subject = (
-        f"AI Safety Opportunities — {len(opportunities)} open"
-        if opportunities else "AI Safety Opportunities — digest"
+        f"AI Safety Opportunities — {n} new" if opportunities
+        else "AI Safety Opportunities — digest"
     )
 
     if opportunities:
         html_items = "".join(_html_item(o) for o in opportunities)
         text_items = "\n".join(_text_item(o) for o in opportunities)
+        lede = f"{n} new opportunit{'y' if n == 1 else 'ies'} on the board"
     else:
-        html_items = "<p>No new opportunities this period.</p>"
+        html_items = f'<p style="color:{MUTED};font-size:14px">No new opportunities this period.</p>'
         text_items = "No new opportunities this period."
+        lede = "Your digest"
 
-    html = (
-        f"<h1>AI Safety Opportunities</h1>{html_items}"
-        f'<p><a href="{escape(unsubscribe_url)}">Unsubscribe</a></p>'
-    )
-    text = f"AI Safety Opportunities\n\n{text_items}\n\nUnsubscribe: {unsubscribe_url}\n"
+    html = f"""<div style="background:{BOARD_BG};padding:28px 12px;margin:0">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;padding:28px 32px;font-family:Georgia,'Times New Roman',serif;color:{INK}">
+    <h1 style="margin:0;font-size:22px;color:{BRAND}">AI Safety Opportunities</h1>
+    <p style="margin:4px 0 22px;font-size:13px;color:{MUTED}">{lede}</p>
+    {html_items}
+    <a href="{escape(site_url)}" style="display:inline-block;margin-top:10px;background:{BRAND};color:#ffffff;padding:9px 16px;border-radius:4px;text-decoration:none;font-size:14px;font-family:Helvetica,Arial,sans-serif">View the full board</a>
+    <p style="margin:26px 0 0;padding-top:14px;border-top:1px solid #e8dcc8;font-size:12px;color:{MUTED};font-family:Helvetica,Arial,sans-serif">
+      You get this daily when new opportunities appear, and silence otherwise.
+      <a href="{escape(unsubscribe_url)}" style="color:{MUTED}">Unsubscribe</a>
+    </p>
+  </div>
+</div>"""
+    text = f"AI Safety Opportunities\n\n{text_items}\n\nBoard: {site_url}\nUnsubscribe: {unsubscribe_url}\n"
     return {"subject": subject, "html": html, "text": text}
 
 
@@ -84,9 +110,23 @@ def _html_item(o: dict) -> str:
     title = escape(o.get("title") or "Untitled")
     org = escape(o.get("org") or "")
     deadline = escape(o.get("deadline") or "no deadline")
+    location = escape(o.get("location") or "")
     link = o.get("link")
-    heading = f'<a href="{escape(link)}">{title}</a>' if link else title
-    return f"<p><strong>{heading}</strong> — {org} (closes {deadline})</p>"
+    cats = [c for c in (o.get("categories") or []) if c != "other"]
+    heading = (
+        f'<a href="{escape(link)}" style="color:{INK};text-decoration:none">{title}</a>'
+        if link else title
+    )
+    meta = " / ".join(x for x in (org, location) if x)
+    labels = "".join(
+        f'<span style="margin-left:8px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:{BRAND};font-family:Helvetica,Arial,sans-serif">{escape(c)}</span>'
+        for c in cats
+    )
+    return f"""<div style="margin:0 0 16px;padding:2px 0 2px 12px;border-left:3px solid {BRAND}">
+      <div style="font-size:16px;font-weight:bold">{heading}{labels}</div>
+      <div style="margin-top:2px;font-size:13px;color:{MUTED}">{meta}</div>
+      <div style="margin-top:2px;font-size:12px;color:#b45309;font-family:Helvetica,Arial,sans-serif">closes {deadline}</div>
+    </div>"""
 
 
 def _text_item(o: dict) -> str:
