@@ -70,3 +70,45 @@ describe("community filter", () => {
     expect(screen.queryByText("From Hub")).not.toBeInTheDocument();
   });
 });
+
+describe("board grouping", () => {
+  it("groups cards under Closing this week and Open headings", () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Urgent", deadline: "2026-06-28", dedupKey: "u" }),
+          opp({ title: "Relaxed", deadline: "2026-09-01", dedupKey: "r" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: /closing this week/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^open \(/i })).toBeInTheDocument();
+  });
+
+  it("shows a Past section only when showPast is on", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Gone", deadline: "2026-01-01", dedupKey: "g" }),
+          opp({ title: "Live", deadline: "2026-09-01", dedupKey: "l" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.queryByRole("heading", { name: /past/i })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText(/show past/i));
+    expect(screen.getByRole("heading", { name: /past/i })).toBeInTheDocument();
+    expect(screen.getByText("Gone")).toBeInTheDocument();
+  });
+
+  it("renders a relative chip for imminent deadlines", () => {
+    render(
+      <OpportunityList
+        opportunities={[opp({ title: "Soon", deadline: "2026-06-29", dedupKey: "s" })]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByText(/3 days left/)).toBeInTheDocument();
+  });
+});

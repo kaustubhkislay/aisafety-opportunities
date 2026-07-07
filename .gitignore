@@ -30,3 +30,4 @@ venv/
 
 # Vercel CLI link (project/org ids; not for git)
 .vercel/
+.vercel
