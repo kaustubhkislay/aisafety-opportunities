@@ -38,17 +38,19 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + pad)
 
 
-def make_token(email: str, secret: str) -> str:
+def make_token(email: str, secret: str, purpose: str = "unsubscribe") -> str:
     email = email.strip().lower()
-    sig = hmac.new(secret.encode(), email.encode(), hashlib.sha256).digest()
+    payload = f"{purpose}:{email}".encode()
+    sig = hmac.new(secret.encode(), payload, hashlib.sha256).digest()
     return f"{_b64(email.encode())}.{_b64(sig)}"
 
 
-def verify_token(token: str, secret: str) -> str | None:
+def verify_token(token: str, secret: str, purpose: str = "unsubscribe") -> str | None:
     try:
         email_part, sig_part = token.split(".", 1)
         email = _unb64(email_part).decode()
-        expected = hmac.new(secret.encode(), email.encode(), hashlib.sha256).digest()
+        payload = f"{purpose}:{email}".encode()
+        expected = hmac.new(secret.encode(), payload, hashlib.sha256).digest()
         if hmac.compare_digest(_unb64(sig_part), expected):
             return email
     except Exception:  # noqa: BLE001 - any malformed/garbage token is simply invalid

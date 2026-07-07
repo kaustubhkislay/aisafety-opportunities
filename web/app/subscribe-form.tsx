@@ -29,7 +29,7 @@ export function SubscribeForm() {
   }
 
   if (status === "ok") {
-    return <p className="py-1.5 text-sm text-[var(--brand)]">Subscribed — check your inbox.</p>;
+    return <p className="py-1.5 text-sm text-[var(--brand)]">Check your inbox to confirm.</p>;
   }
 
   return (

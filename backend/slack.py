@@ -21,7 +21,7 @@ from slackbot.backfill import backfill_channel
 from slackbot.channels import ChannelScope
 from slackbot.events import Backfill, Drop, Ingest, Purge, Retract, translate
 from slackbot.tokens import TokenStore
-from slackbot.verify import verify_slack_signature
+from slackbot.verify import make_state, verify_slack_signature, verify_state
 from slackbot.web import SlackApiError, SlackWeb
 
 logger = logging.getLogger(__name__)
@@ -143,17 +143,23 @@ _SCOPES = "channels:history,channels:read,reactions:read,team:read"
 def slack_install():
     client_id = os.environ.get("SLACK_CLIENT_ID", "")
     redirect = os.environ.get("SLACK_REDIRECT_URL", "")
+    state = make_state(os.environ.get("SLACK_SIGNING_SECRET", ""), now=time.time())
     url = (
         "https://slack.com/oauth/v2/authorize"
-        f"?client_id={client_id}&scope={_SCOPES}&redirect_uri={redirect}"
+        f"?client_id={client_id}&scope={_SCOPES}&redirect_uri={redirect}&state={state}"
     )
     return RedirectResponse(url)
 
 
 @router.get("/slack/oauth/callback", response_class=HTMLResponse)
-async def slack_oauth_callback(code: str | None = None) -> HTMLResponse:
+async def slack_oauth_callback(
+    code: str | None = None, state: str | None = None
+) -> HTMLResponse:
     if not code:
         return HTMLResponse("<p>Missing OAuth code.</p>", status_code=400)
+    # CSRF guard: only exchange codes for flows we started (signed state).
+    if not verify_state(os.environ.get("SLACK_SIGNING_SECRET", ""), state or "", now=time.time()):
+        return HTMLResponse("<p>Invalid or expired install link — start again from /slack/install.</p>", status_code=400)
     try:
         data = await _web.oauth_access(
             os.environ.get("SLACK_CLIENT_ID", ""),

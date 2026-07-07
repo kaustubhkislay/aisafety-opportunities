@@ -42,6 +42,9 @@ jobs:
       - name: Test
         if: steps.guard.outputs.run == 'true'
         run: npm test
+      - name: Typecheck (includes test files)
+        if: steps.guard.outputs.run == 'true'
+        run: npx tsc --noEmit
       - name: Build
         if: steps.guard.outputs.run == 'true'
         run: npm run build

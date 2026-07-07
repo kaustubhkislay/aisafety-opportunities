@@ -46,3 +46,14 @@ def test_garbage_timestamp_rejected():
 def test_missing_signature_rejected():
     ts = str(int(NOW))
     assert verify_slack_signature(SECRET, ts, b"{}", "", now=NOW) is False
+
+
+def test_state_round_trip_and_expiry():
+    from slackbot.verify import make_state, verify_state
+
+    state = make_state("secret", now=1_000_000.0)
+    assert verify_state("secret", state, now=1_000_000.0 + 60) is True
+    assert verify_state("secret", state, now=1_000_000.0 + 601) is False  # >10 min
+    assert verify_state("other", state, now=1_000_000.0) is False
+    assert verify_state("secret", "garbage", now=1_000_000.0) is False
+    assert verify_state("secret", "", now=1_000_000.0) is False

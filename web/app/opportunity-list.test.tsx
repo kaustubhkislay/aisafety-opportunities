@@ -7,7 +7,7 @@ import type { Opportunity } from "@/lib/types";
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: "2027-01-01", link: "https://x.org",
-    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [], sourceServers: [],
+    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [],
     ...p,
   };
 }

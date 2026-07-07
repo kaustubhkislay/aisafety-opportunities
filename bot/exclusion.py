@@ -13,6 +13,11 @@ import re
 # Documented exclusion vocabulary. Authors add any of these to opt a message out.
 _TAGS = ("[private]", "[uni-reserved]", "school-specific", "internal", "do-not-share")
 
+# The single authority for which tags, edited INTO a message, retract a
+# published item (the bracketed explicit ones — bare words like "internal"
+# are too accident-prone for deletion semantics).
+RETRACTION_TAGS = ("[private]", "[uni-reserved]")
+
 # Bare-word tags match as whole tokens (so "internal" does not fire inside
 # "internationally"); hyphens count as part of a token so "do-not-share"
 # matches as a unit. Bracketed tags match verbatim anywhere — the brackets are
