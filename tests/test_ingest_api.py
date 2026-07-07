@@ -67,3 +67,22 @@ def test_retract_pings_revalidate(tmp_path, monkeypatch):
         app_module.app.dependency_overrides.pop(app_module.get_airtable_store, None)
     assert resp.status_code == 200
     assert pings == [1]  # site refreshed so the retraction is visible immediately
+
+
+def test_feedback_stores_message(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    resp = client.post("/feedback", json={"message": "love the board", "email": "a@b.co"})
+    assert resp.status_code == 200
+    assert resp.json()["stored"] is True
+
+    import backend.app as app_module
+
+    rows = app_module._feedback.all()
+    assert rows[0]["message"] == "love the board"
+    assert rows[0]["email"] == "a@b.co"
+
+
+def test_feedback_rejects_empty_and_oversized(tmp_path, monkeypatch):
+    client = _client(tmp_path, monkeypatch)
+    assert client.post("/feedback", json={"message": "  "}).status_code == 400
+    assert client.post("/feedback", json={"message": "x" * 5001}).status_code == 400

@@ -70,11 +70,6 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
       <p className="text-sm text-[var(--muted)]">
         {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" · ")}
       </p>
-      {o.sourceServers.length > 0 && (
-        <p className="mt-auto text-[11px] uppercase tracking-[0.18em] text-[var(--muted)]">
-          found in {o.sourceServers.join(", ")}
-        </p>
-      )}
     </li>
   );
 }
@@ -84,17 +79,19 @@ function Section({
   items,
   now,
   accent,
+  id,
 }: {
   title: string;
   items: Opportunity[];
   now: Date;
   accent?: boolean;
+  id?: string;
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="mb-8">
+    <section className="mb-8 scroll-mt-20" id={id}>
       <h2 className={`font-display mb-3 text-lg font-semibold ${accent ? "text-amber-700" : ""}`}>
-        {title} <span className="text-sm font-normal text-[var(--muted)]">({items.length})</span>
+        {title}
       </h2>
       <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((o) => (
@@ -137,16 +134,22 @@ export function OpportunityList({
   );
 
   const groups = useMemo(() => {
+    const today = nowISO.slice(0, 10);
+    const fresh: Opportunity[] = [];
     const closing: Opportunity[] = [];
     const open: Opportunity[] = [];
     const past: Opportunity[] = [];
     for (const o of visible) {
       const status = deriveStatus(o.deadline, now);
+      if (status !== "expired" && o.dateSeen === today) {
+        fresh.push(o);
+        continue;
+      }
       if (status === "closing-soon") closing.push(o);
       else if (status === "expired") past.push(o);
       else open.push(o);
     }
-    return { closing, open, past };
+    return { fresh, closing, open, past };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
@@ -192,9 +195,9 @@ export function OpportunityList({
         <button
           type="button"
           onClick={() => setSubscribeOpen((v) => !v)}
-          className="ml-auto text-sm font-medium text-[var(--brand)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--brand-hover)] active:translate-y-px"
+          className="ml-auto rounded bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
         >
-          ✉ Daily digest
+          ✉ Get the daily digest
         </button>
       </div>
 
@@ -204,9 +207,10 @@ export function OpportunityList({
         </div>
       )}
 
-      <Section title="Closing this week" items={groups.closing} now={now} accent />
-      <Section title="Open" items={groups.open} now={now} />
-      {showPast && <Section title="Past" items={groups.past} now={now} />}
+      <Section title="Newly added" items={groups.fresh} now={now} id="new" />
+      <Section title="Closing this week" items={groups.closing} now={now} accent id="closing" />
+      <Section title="Open" items={groups.open} now={now} id="open" />
+      {showPast && <Section title="Past" items={groups.past} now={now} id="past" />}
       {visible.length === 0 && <p className="text-[var(--muted)]">Nothing on the board matches.</p>}
     </div>
   );
