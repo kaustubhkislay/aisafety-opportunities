@@ -244,3 +244,9 @@ def test_build_digest_items_show_org_deadline_categories():
     assert "Redwood" in html
     assert "2026-08-01" in html
     assert "tech" in html and "gov" in html
+
+
+def test_no_deadline_item_omits_closes_line():
+    digest = build_digest([_opp("Open Ended", None)], "https://site/u")
+    assert "closes" not in digest["html"]
+    assert "no deadline" not in digest["html"]

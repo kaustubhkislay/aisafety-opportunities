@@ -61,7 +61,6 @@ def verify_token(token: str, secret: str) -> str | None:
 BRAND = "#6b46c1"
 INK = "#1a1a1a"
 MUTED = "#6f6a62"
-BOARD_BG = "#f5efe2"
 
 
 def build_digest(
@@ -90,8 +89,8 @@ def build_digest(
         text_items = "No new opportunities this period."
         lede = "Your digest"
 
-    html = f"""<div style="background:{BOARD_BG};padding:28px 12px;margin:0">
-  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;padding:28px 32px;font-family:Georgia,'Times New Roman',serif;color:{INK}">
+    html = f"""<div style="padding:20px 12px;margin:0">
+  <div style="max-width:600px;margin:0 auto;padding:8px 4px;font-family:Georgia,'Times New Roman',serif;color:{INK}">
     <h1 style="margin:0;font-size:22px;color:{BRAND}">AI Safety Opportunities</h1>
     <p style="margin:4px 0 22px;font-size:13px;color:{MUTED}">{lede}</p>
     {html_items}
@@ -122,19 +121,24 @@ def _html_item(o: dict) -> str:
         f'<span style="margin-left:8px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:{BRAND};font-family:Helvetica,Arial,sans-serif">{escape(c)}</span>'
         for c in cats
     )
-    return f"""<div style="margin:0 0 16px;padding:2px 0 2px 12px;border-left:3px solid {BRAND}">
+    deadline_line = (
+        f'<div style="margin-top:2px;font-size:12px;color:#b45309;font-family:Helvetica,Arial,sans-serif">closes {deadline}</div>'
+        if o.get("deadline") else ""
+    )
+    return f"""<div style="margin:0 0 18px">
       <div style="font-size:16px;font-weight:bold">{heading}{labels}</div>
       <div style="margin-top:2px;font-size:13px;color:{MUTED}">{meta}</div>
-      <div style="margin-top:2px;font-size:12px;color:#b45309;font-family:Helvetica,Arial,sans-serif">closes {deadline}</div>
+      {deadline_line}
     </div>"""
 
 
 def _text_item(o: dict) -> str:
     title = o.get("title") or "Untitled"
     org = o.get("org") or ""
-    deadline = o.get("deadline") or "no deadline"
+    deadline = o.get("deadline")
     link = o.get("link") or ""
-    return f"- {title} — {org} (closes {deadline}) {link}".rstrip()
+    closes = f" (closes {deadline})" if deadline else ""
+    return f"- {title} — {org}{closes} {link}".rstrip()
 
 
 def _sort_key(o: dict):
