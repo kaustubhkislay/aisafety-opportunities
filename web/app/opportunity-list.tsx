@@ -39,13 +39,18 @@ function deadlineChip(deadline: string | null, now: Date): { text: string; urgen
   return { text: `closes ${MONTHS[due.getUTCMonth()]} ${due.getUTCDate()}`, urgent: false };
 }
 
-function Card({ o, now }: { o: Opportunity; now: Date }) {
+function Card({ o, now, index }: { o: Opportunity; now: Date; index: number }) {
   const chip = deadlineChip(o.deadline, now);
   const badge = TYPE_COLORS[o.type] ?? TYPE_COLORS.other;
+  const tilt = index % 2 === 0 ? "-rotate-[0.4deg]" : "rotate-[0.4deg]";
   return (
     <li
-      className={`flex flex-col gap-1.5 pt-3 ${chip.urgent ? "border-t-2 border-amber-500" : "border-t border-[var(--edge)]"}`}
+      className={`relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-5 shadow-[0_1px_4px_rgba(28,25,23,0.12)] transition-transform hover:rotate-0 ${tilt}`}
     >
+      <span
+        aria-hidden
+        className={`absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full shadow-sm ${chip.urgent ? "bg-amber-500" : "bg-[var(--brand)]"}`}
+      />
       <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
         <span className={`font-medium ${badge}`}>{o.type}</span>
         <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
@@ -92,9 +97,9 @@ function Section({
       <h2 className={`font-display mb-3 text-lg font-semibold ${accent ? "text-amber-700" : ""}`}>
         {title}
       </h2>
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((o) => (
-          <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
+      <ul className="grid grid-cols-1 gap-5 pt-1.5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((o, i) => (
+          <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} index={i} />
         ))}
       </ul>
     </section>
@@ -152,7 +157,7 @@ export function OpportunityList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
-  const control = "border-b border-[var(--edge)] bg-transparent px-1 py-1.5 text-sm focus:border-[var(--brand)] focus:outline-none";
+  const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]";
 
   return (
     <div>
