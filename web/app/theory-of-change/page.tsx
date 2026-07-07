@@ -9,6 +9,11 @@ export const metadata: Metadata = {
 export default function TheoryOfChangePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
+      <nav className="mb-6 text-sm text-[var(--muted)]">
+        <Link href="/" className="hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
+        </Link>
+      </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Theory of change</h1>
 
       <section className="mt-8 space-y-4 text-[15px] leading-relaxed">
@@ -55,11 +60,6 @@ export default function TheoryOfChangePage() {
         </p>
       </section>
 
-      <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <Link href="/" className="hover:text-[var(--brand-hover)]">
-          {"< Back to the board"}
-        </Link>
-      </footer>
     </main>
   );
 }
