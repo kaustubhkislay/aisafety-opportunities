@@ -13,7 +13,7 @@ const TYPES: OppType[] = [
 const TYPE_COLORS: Record<string, string> = {
   job: "bg-slate-100 text-slate-700",
   internship: "bg-sky-100 text-sky-800",
-  fellowship: "bg-amber-100 text-amber-800",
+  fellowship: "bg-[var(--brand-tint)] text-[var(--brand)]",
   grant: "bg-green-100 text-green-800",
   event: "bg-purple-100 text-purple-800",
   course: "bg-teal-100 text-teal-800",
@@ -55,7 +55,7 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
       </div>
       <h3 className="font-display text-base font-semibold leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
         {o.link ? (
-          <a href={o.link} target="_blank" rel="noopener noreferrer" className="hover:text-amber-700">
+          <a href={o.link} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--brand)]">
             {o.title}
           </a>
         ) : (
@@ -187,7 +187,7 @@ export function OpportunityList({
         <button
           type="button"
           onClick={() => setSubscribeOpen((v) => !v)}
-          className={`${pill} ml-auto font-medium text-amber-700 hover:bg-amber-50`}
+          className={`${pill} ml-auto font-medium text-[var(--brand)] hover:bg-[var(--brand-tint)]`}
         >
           ✉ Daily digest
         </button>

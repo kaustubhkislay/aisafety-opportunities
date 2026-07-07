@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  /* Restrained paper: warm page, warm-white cards, ink text. */
-  --background: #faf9f6;
-  --foreground: #1c1917;
-  --card: #fffdf9;
-  --muted: #78716c;
-  --edge: #e7e2da;
+  /* WAISI design system: cream, charcoal, violet, Lora. */
+  --background: #fff9f0;
+  --foreground: #2d2a26;
+  --card: #fffdf8;
+  --muted: #6f6a62;
+  --edge: #e8dcc8;
+  --brand: #6b46c1;
+  --brand-link: #8b5cf6;
+  --brand-tint: #ede9fe;
 }
 
 @theme inline {
@@ -18,11 +21,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1c1917;
-    --foreground: #e7e5e4;
-    --card: #292524;
-    --muted: #a8a29e;
-    --edge: #44403c;
+    --background: #2d2a26;
+    --foreground: #f0ece4;
+    --card: #3a362f;
+    --muted: #b5aea3;
+    --edge: #555047;
+    --brand: #c4b5fd;
+    --brand-link: #c4b5fd;
+    --brand-tint: #443a63;
   }
 }
 
@@ -33,5 +39,9 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-lora), Georgia, serif;
+}
+
+a {
+  color: inherit;
 }
