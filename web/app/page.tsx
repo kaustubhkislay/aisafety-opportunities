@@ -56,19 +56,15 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <span>
-          A{" "}
-          <a href="https://waisi.org" target="_blank" rel="noopener noreferrer">
-            <Image
-              src="/waisi-full.png"
-              alt="waisi"
-              width={455}
-              height={96}
-              className="inline h-4 w-auto align-[-3px]"
-            />
-          </a>{" "}
-          production
-        </span>
+        <a href="https://waisi.org" target="_blank" rel="noopener noreferrer">
+          <Image
+            src="/waisi-full.png"
+            alt="waisi"
+            width={455}
+            height={96}
+            className="inline h-3.5 w-auto align-[-2px]"
+          />
+        </a>
         {" / "}
         <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
         {" / "}
