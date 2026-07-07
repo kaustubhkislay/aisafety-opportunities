@@ -41,21 +41,33 @@ export default async function PartnersPage() {
       </nav>
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
 
-      <ul className="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
         {partners.map(([name]) => {
           const logo = logoFor(name);
+          const initials = name
+            .split(/\s+/)
+            .filter((w) => /^[A-Za-z]/.test(w))
+            .slice(0, 3)
+            .map((w) => w[0].toUpperCase())
+            .join("");
           return (
-            <li key={name} className="flex items-center gap-3">
-              {logo && (
-                <Image
-                  src={logo}
-                  alt={`${name} logo`}
-                  width={455}
-                  height={96}
-                  className="h-6 w-auto shrink-0"
-                />
-              )}
-              <span className="min-w-0 font-display text-lg font-medium leading-snug">{name}</span>
+            <li key={name} className="flex flex-col items-center gap-2 text-center">
+              <div className="flex h-16 w-full items-center justify-center">
+                {logo ? (
+                  <Image
+                    src={logo}
+                    alt={`${name} logo`}
+                    width={455}
+                    height={96}
+                    className="max-h-16 w-auto max-w-full object-contain"
+                  />
+                ) : (
+                  <span className="font-display text-2xl font-semibold text-[var(--muted)]">
+                    {initials}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs leading-snug text-[var(--muted)]">{name}</span>
             </li>
           );
         })}
