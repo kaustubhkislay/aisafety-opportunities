@@ -24,9 +24,19 @@ export default async function Home() {
       <main className="board px-4 py-6 sm:px-6">
       <header className="mb-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
-            AI Safety Opportunities
-          </h1>
+          <div>
+            <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
+              AI Safety Opportunities
+            </h1>
+            <nav aria-label="Contents" className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/partners" className={toc}>Partner communities</Link>
+              <Link href="/theory-of-change" className={toc}>ToC</Link>
+              <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
+                Feedback
+              </a>
+              <a href="/feed.xml" className={toc}>RSS</a>
+            </nav>
+          </div>
           <div className="flex flex-col items-start gap-2 lg:items-end">
             <SubscribeForm />
             <a
@@ -37,14 +47,6 @@ export default async function Home() {
             </a>
           </div>
         </div>
-        <nav aria-label="Contents" className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-          <Link href="/partners" className={toc}>Partner communities</Link>
-          <Link href="/theory-of-change" className={toc}>ToC</Link>
-          <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
-            Feedback
-          </a>
-          <a href="/feed.xml" className={toc}>RSS</a>
-        </nav>
       </header>
 
       {degraded && (
