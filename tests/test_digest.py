@@ -269,3 +269,16 @@ def test_footer_carries_unique_sent_stamp():
         [_opp("X", "2026-08-01")], "https://site/u", sent_at="2026-07-08 15:00 UTC",
     )
     assert digest["html"] != other["html"]
+
+
+def test_tokens_are_purpose_scoped():
+    from backend.digest import make_token, verify_token
+
+    unsub = make_token("a@b.co", "s")
+    confirm = make_token("a@b.co", "s", purpose="confirm")
+    assert unsub != confirm
+    assert verify_token(unsub, "s") == "a@b.co"
+    assert verify_token(confirm, "s", purpose="confirm") == "a@b.co"
+    # cross-purpose replay fails: an unsubscribe link cannot confirm, and vice versa
+    assert verify_token(unsub, "s", purpose="confirm") is None
+    assert verify_token(confirm, "s") is None

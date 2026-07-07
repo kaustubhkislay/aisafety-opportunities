@@ -8,6 +8,7 @@ default passed to ``should_exclude`` is always "public".
 from dataclasses import dataclass
 
 from bot.exclusion import should_exclude
+from bot.retraction import is_retraction_edit
 from slackbot.ids import message_id, server_id, ts_to_iso
 
 
@@ -45,8 +46,7 @@ def translate(
         subtype = event.get("subtype")
         if subtype == "message_changed":
             inner = event.get("message") or {}
-            excluded, _ = should_exclude(inner.get("text"), "public")
-            if excluded:
+            if is_retraction_edit(inner.get("text")):
                 return Retract(
                     message_id=message_id(team_id, event.get("channel", ""), inner.get("ts", ""))
                 )

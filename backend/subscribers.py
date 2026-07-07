@@ -7,15 +7,15 @@ is a soft toggle and re-subscribe just reactivates.
 
 import sqlite3
 
+from backend.db import connect
+
 
 class SubscriberStore:
     def __init__(self, db_path: str):
         self.db_path = db_path
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        return connect(self.db_path)
 
     def init_db(self) -> None:
         with self._connect() as conn:
@@ -51,6 +51,27 @@ class SubscriberStore:
                 )
                 return True
             return False  # already active
+
+    def add_pending(self, email: str) -> bool:
+        """Record a not-yet-confirmed signup (double-opt-in). Returns True if a
+        new pending row was created; existing rows (any state) are untouched."""
+        email = self._normalize(email)
+        with self._connect() as conn:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO subscribers (email, active) VALUES (?, 0)",
+                (email,),
+            )
+            return cur.rowcount == 1
+
+    def activate(self, email: str) -> bool:
+        """Confirm a signup. Returns True if a subscriber was activated."""
+        email = self._normalize(email)
+        with self._connect() as conn:
+            cur = conn.execute(
+                "UPDATE subscribers SET active = 1 WHERE email = ? AND active = 0",
+                (email,),
+            )
+            return cur.rowcount == 1
 
     def remove(self, email: str) -> bool:
         """Unsubscribe. Returns True if an active subscriber was deactivated."""

@@ -71,37 +71,63 @@ class AirtableStore:
         return updated
 
 
+_RETRYABLE = {429, 500, 502, 503}
+_MAX_ATTEMPTS = 4
+
+
 class PyairtableBackend:
-    def __init__(self, table):
+    def __init__(self, table, sleep=None):
         self.table = table
+        if sleep is None:
+            import time
+
+            sleep = time.sleep
+        self._sleep = sleep
+
+    def _call(self, fn, *args, **kwargs):
+        """Run an Airtable call with exponential backoff on 429/transient 5xx.
+
+        Airtable allows ~5 req/s; without this, a burst of publishes makes the
+        worker re-run (and re-bill) whole extractions on every rate-limit hit.
+        """
+        delay = 0.5
+        for attempt in range(1, _MAX_ATTEMPTS + 1):
+            try:
+                return fn(*args, **kwargs)
+            except Exception as err:  # noqa: BLE001 - inspect for retryability
+                status = getattr(getattr(err, "response", None), "status_code", None)
+                if status not in _RETRYABLE or attempt == _MAX_ATTEMPTS:
+                    raise
+                self._sleep(delay)
+                delay *= 2
 
     def find_by_dedup_key(self, key):
         from pyairtable.formulas import match
 
-        return self.table.first(formula=match({"dedup_key": key}))
+        return self._call(self.table.first, formula=match({"dedup_key": key}))
 
     def all(self) -> list[dict]:
         # pyairtable returns records as {"id", "fields", "createdTime"}.
-        return self.table.all()
+        return self._call(self.table.all)
 
     def find_by_message_id(self, message_id):
         from pyairtable.formulas import match
 
-        return self.table.first(formula=match({"source_message_id": message_id}))
+        return self._call(self.table.first, formula=match({"source_message_id": message_id}))
 
     def find_by_server(self, server_id):
         from pyairtable.formulas import match
 
-        return self.table.all(formula=match({"source_server": server_id}))
+        return self._call(self.table.all, formula=match({"source_server": server_id}))
 
     def create(self, fields) -> str:
-        return self.table.create(fields)["id"]
+        return self._call(self.table.create, fields)["id"]
 
     def update(self, record_id, fields) -> None:
-        self.table.update(record_id, fields)
+        self._call(self.table.update, record_id, fields)
 
     def delete(self, record_id) -> None:
-        self.table.delete(record_id)
+        self._call(self.table.delete, record_id)
 
 
 def backend_from_env() -> PyairtableBackend:

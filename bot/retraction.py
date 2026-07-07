@@ -14,9 +14,9 @@ def is_retraction_reaction(emoji: str) -> bool:
     return emoji == LOCK_EMOJI
 
 
-_RETRACTION_TAGS = ("[private]", "[uni-reserved]")
+from bot.exclusion import RETRACTION_TAGS
 
 
 def is_retraction_edit(content: str | None) -> bool:
     lowered = (content or "").lower()
-    return any(tag in lowered for tag in _RETRACTION_TAGS)
+    return any(tag in lowered for tag in RETRACTION_TAGS)

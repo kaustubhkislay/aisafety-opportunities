@@ -30,3 +30,27 @@ describe("POST /api/revalidate", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/partners");
   });
 });
+
+describe("header-based secret", () => {
+  it("accepts the secret via x-revalidate-secret header", async () => {
+    process.env.REVALIDATE_SECRET = "sec";
+    const res = await POST(
+      new Request("http://localhost/api/revalidate", {
+        method: "POST",
+        headers: { "x-revalidate-secret": "sec" },
+      }),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects a wrong header secret", async () => {
+    process.env.REVALIDATE_SECRET = "sec";
+    const res = await POST(
+      new Request("http://localhost/api/revalidate", {
+        method: "POST",
+        headers: { "x-revalidate-secret": "wrong" },
+      }),
+    );
+    expect(res.status).toBe(401);
+  });
+});

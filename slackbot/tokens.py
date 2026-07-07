@@ -7,15 +7,15 @@ uninstall/revocation, which is the Slack analogue of the Discord kick-purge.
 
 import sqlite3
 
+from backend.db import connect
+
 
 class TokenStore:
     def __init__(self, db_path: str):
         self.db_path = db_path
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+        return connect(self.db_path)
 
     def init_db(self) -> None:
         with self._connect() as conn:

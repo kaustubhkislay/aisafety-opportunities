@@ -68,3 +68,38 @@ def test_retract_pings_revalidate(tmp_path, monkeypatch):
     assert resp.status_code == 200
     assert pings == [1]  # site refreshed so the retraction is visible immediately
 
+
+
+def test_subscribe_is_double_opt_in(tmp_path, monkeypatch):
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    sent = []
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda e, s, h, t: sent.append((e, h))))
+    resp = client.post("/subscribe", json={"email": "new@x.com"})
+    assert resp.status_code == 200
+    assert resp.json()["pending"] is True
+    assert app_module._subscribers.active_emails() == []  # not active yet
+    assert len(sent) == 1 and "confirm" in sent[0][1].lower()
+
+    # follow the confirm link
+    from backend.digest import make_token
+
+    token = make_token("new@x.com", "sek", purpose="confirm")
+    resp = client.get(f"/subscribe/confirm?token={token}")
+    assert resp.status_code == 200
+    assert app_module._subscribers.active_emails() == ["new@x.com"]
+
+
+def test_subscribe_rate_limited_per_ip(tmp_path, monkeypatch):
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda *a: None))
+    for i in range(5):
+        assert client.post("/subscribe", json={"email": f"u{i}@x.com"}).status_code == 200
+    assert client.post("/subscribe", json={"email": "u6@x.com"}).status_code == 429

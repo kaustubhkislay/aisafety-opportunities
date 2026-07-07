@@ -54,13 +54,13 @@ def _api(tmp_path, monkeypatch):
 
 
 def test_subscribe_endpoint_stores_valid_email(tmp_path, monkeypatch):
+    # Double-opt-in: without a configured sender (dev), the address activates
+    # directly; with one, it stays pending until the confirm link is clicked.
     mod, client = _api(tmp_path, monkeypatch)
     resp = client.post("/subscribe", json={"email": "A@x.com"})
     assert resp.status_code == 200
-    assert resp.json() == {"subscribed": True, "email": "a@x.com"}
-    assert mod._subscribers.active_emails() == ["a@x.com"]
-    # duplicate subscribe is a no-op
-    assert client.post("/subscribe", json={"email": "a@x.com"}).json()["subscribed"] is False
+    assert resp.json() == {"pending": True, "email": "a@x.com"}
+    assert mod._subscribers.active_emails() == ["a@x.com"]  # dev fallback activates
 
 
 def test_subscribe_endpoint_rejects_invalid_email(tmp_path, monkeypatch):
@@ -82,3 +82,19 @@ def test_unsubscribe_endpoint_removes_subscriber(tmp_path, monkeypatch):
 def test_unsubscribe_endpoint_rejects_bad_token(tmp_path, monkeypatch):
     _mod, client = _api(tmp_path, monkeypatch)
     assert client.get("/unsubscribe?token=garbage").status_code == 400
+
+
+def test_add_pending_then_activate(tmp_path):
+    store = _store(tmp_path)
+    assert store.add_pending("new@x.com") is True
+    assert store.active_emails() == []  # pending, not active
+    assert store.activate("new@x.com") is True
+    assert store.active_emails() == ["new@x.com"]
+    assert store.activate("new@x.com") is False  # idempotent
+
+
+def test_add_pending_does_not_deactivate_existing(tmp_path):
+    store = _store(tmp_path)
+    store.add("old@x.com")
+    assert store.add_pending("old@x.com") is False
+    assert store.active_emails() == ["old@x.com"]

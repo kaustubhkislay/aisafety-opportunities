@@ -1,9 +1,16 @@
 import os
+import time
+from collections import defaultdict, deque
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from backend.digest import is_valid_email, verify_token
+from backend.digest import (
+    is_valid_email,
+    make_token,
+    resend_sender_from_env,
+    verify_token,
+)
 from backend.models import (
     IngestMessage,
     PurgeServer,
@@ -92,13 +99,67 @@ def ingested(server_id: str, _: None = Depends(require_secret)) -> dict:
     return {"server_id": server_id, "count": len(messages), "messages": messages}
 
 
+# Public endpoint abuse guard: N signups per IP per window (in-process is
+# fine — a single uvicorn serves this).
+_SUBSCRIBE_WINDOW = 60 * 60
+_SUBSCRIBE_LIMIT = 5
+_subscribe_hits: dict[str, deque] = defaultdict(deque)
+
+
+def _rate_limited(ip: str, now: float | None = None) -> bool:
+    now = time.time() if now is None else now
+    hits = _subscribe_hits[ip]
+    while hits and now - hits[0] > _SUBSCRIBE_WINDOW:
+        hits.popleft()
+    if len(hits) >= _SUBSCRIBE_LIMIT:
+        return True
+    hits.append(now)
+    return False
+
+
+def _confirm_sender():
+    # Indirection so tests can stub the sender; None when Resend is unconfigured.
+    return resend_sender_from_env(os.environ)
+
+
 @app.post("/subscribe")
-def subscribe(body: SubscribeRequest) -> dict:
-    # Public endpoint (the website's subscribe form posts here).
+def subscribe(body: SubscribeRequest, request: Request) -> dict:
+    # Public endpoint (the website's subscribe form posts here). Double-opt-in:
+    # anyone can type any address, so nothing activates until the owner of the
+    # inbox clicks the signed confirm link.
     if not is_valid_email(body.email):
         raise HTTPException(status_code=400, detail="invalid email")
-    added = _subscribers.add(body.email)
-    return {"subscribed": added, "email": body.email.strip().lower()}
+    ip = request.client.host if request.client else "unknown"
+    if _rate_limited(ip):
+        raise HTTPException(status_code=429, detail="too many signups; try later")
+    email = body.email.strip().lower()
+    _subscribers.add_pending(email)
+    sender = _confirm_sender()
+    secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
+    if sender is not None and secret:
+        base = os.environ.get("BACKEND_URL", "http://localhost:3000").rstrip("/")
+        link = f"{base}/subscribe/confirm?token={make_token(email, secret, purpose='confirm')}"
+        sender(
+            email,
+            "Confirm your AI Safety Opportunities digest",
+            f'<p>Click to confirm your daily digest subscription: <a href="{link}">confirm</a>.</p>'
+            "<p>If you didn't request this, ignore this email and nothing happens.</p>",
+            f"Confirm your subscription: {link}\nIf you didn't request this, ignore this email.",
+        )
+    else:
+        # Dev fallback: no email provider configured — activate directly.
+        _subscribers.activate(email)
+    return {"pending": True, "email": email}
+
+
+@app.get("/subscribe/confirm", response_class=HTMLResponse)
+def subscribe_confirm(token: str) -> HTMLResponse:
+    secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
+    email = verify_token(token, secret, purpose="confirm") if secret else None
+    if email is None:
+        return HTMLResponse("<p>Invalid confirmation link.</p>", status_code=400)
+    _subscribers.activate(email)
+    return HTMLResponse(f"<p>{email} is subscribed to the daily digest.</p>")
 
 
 @app.get("/unsubscribe", response_class=HTMLResponse)

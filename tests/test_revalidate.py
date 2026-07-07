@@ -14,11 +14,11 @@ def test_returns_none_without_env():
     assert make_revalidator({"REVALIDATE_SECRET": "x"}) is None
 
 
-def test_posts_revalidate_url():
+def test_posts_revalidate_with_header_secret():
     calls = []
 
-    def post(url, timeout):
-        calls.append(url)
+    def post(url, headers=None, timeout=None):
+        calls.append((url, headers))
         return FakeResponse(200)
 
     ping = make_revalidator(
@@ -26,13 +26,15 @@ def test_posts_revalidate_url():
         post=post,
     )
     assert ping() is True
-    assert calls == ["https://aisopportunities.com/api/revalidate?secret=sec"]
+    url, headers = calls[0]
+    assert url == "https://aisopportunities.com/api/revalidate"
+    assert headers == {"x-revalidate-secret": "sec"}  # never in the URL/query logs
 
 
 def test_fail_soft_on_http_error(caplog):
     ping = make_revalidator(
         {"SITE_URL": "https://s.example", "REVALIDATE_SECRET": "sec"},
-        post=lambda url, timeout: FakeResponse(401),
+        post=lambda url, headers=None, timeout=None: FakeResponse(401),
     )
     with caplog.at_level(logging.WARNING, logger="revalidate"):
         assert ping() is False
@@ -40,7 +42,7 @@ def test_fail_soft_on_http_error(caplog):
 
 
 def test_fail_soft_on_exception():
-    def post(url, timeout):
+    def post(url, headers=None, timeout=None):
         raise OSError("network down")
 
     ping = make_revalidator(

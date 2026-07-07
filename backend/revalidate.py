@@ -26,11 +26,13 @@ def make_revalidator(env, post=None):
         import httpx
 
         post = httpx.post
-    url = f"{site}/api/revalidate?secret={secret}"
+    # Secret travels in a header: query strings leak into request logs.
+    url = f"{site}/api/revalidate"
+    headers = {"x-revalidate-secret": secret}
 
     def revalidate() -> bool:
         try:
-            res = post(url, timeout=10)
+            res = post(url, headers=headers, timeout=10)
         except Exception:  # noqa: BLE001 - never let a cache ping break the pipeline
             log.exception("revalidate ping failed")
             return False
