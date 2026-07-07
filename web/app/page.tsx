@@ -21,7 +21,7 @@ export default async function Home() {
   return (
     <div className="mx-auto max-w-5xl px-2 py-5 sm:px-4 sm:py-8">
       <main className="board px-4 py-6 sm:px-6">
-      <header className="mb-6">
+      <header className="mb-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h1 className="font-display text-2xl font-bold text-[var(--brand)] sm:text-3xl">
             AI Safety Opportunities
@@ -36,7 +36,7 @@ export default async function Home() {
             </a>
           </div>
         </div>
-        <nav aria-label="Contents" className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+        <nav aria-label="Contents" className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
           <Link href="/partners" className={toc}>Partner communities</Link>
           <Link href="/theory-of-change" className={toc}>Theory of change</Link>
           <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
@@ -55,11 +55,12 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <p className="mb-1 text-[11px]">A waisi production</p>
+        <span>A waisi production</span>
+        {" / "}
         <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
-        {" · "}
+        {" / "}
         <a href="/terms" className="hover:text-[var(--brand-hover)]">Terms</a>
-        {" · "}
+        {" / "}
         <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="hover:text-[var(--brand-hover)]">
           Open source
         </a>
