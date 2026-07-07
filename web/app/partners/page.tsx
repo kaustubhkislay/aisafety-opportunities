@@ -56,13 +56,13 @@ export default async function PartnersPage() {
           href={INSTALL_URL}
           className="mt-3 inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
         >
-          Install instructions →
+          {"Install instructions >"}
         </a>
       </section>
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <Link href="/" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">
-          ← Back to the board
+        <Link href="/" className="hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
         </Link>
       </footer>
     </main>

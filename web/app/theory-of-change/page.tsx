@@ -56,8 +56,8 @@ export default function TheoryOfChangePage() {
       </section>
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <Link href="/" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">
-          ← Back to the board
+        <Link href="/" className="hover:text-[var(--brand-hover)]">
+          {"< Back to the board"}
         </Link>
       </footer>
     </main>

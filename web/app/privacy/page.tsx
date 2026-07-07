@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       <h1 className="text-2xl font-bold">Privacy</h1>
       <p className="mt-2 text-gray-600">
         This whole project is open source, so everything described here is auditable in{" "}
-        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="underline">
+        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="transition-colors hover:text-[var(--brand-hover)]">
           the code
         </a>
         . Last updated 2026-07-05.
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
         <h2 className="text-lg font-semibold">Takedown and contact</h2>
         <p className="mt-2">
           To request removal of a listing or your data, use the retraction path above or email{" "}
-          <a href="mailto:kaustubh.kislay@gmail.com" className="underline">
+          <a href="mailto:kaustubh.kislay@gmail.com" className="transition-colors hover:text-[var(--brand-hover)]">
             kaustubh.kislay@gmail.com
           </a>
           . Takedowns are handled fast.
@@ -81,11 +81,11 @@ export default function PrivacyPage() {
       </section>
 
       <footer className="mt-12 text-sm text-gray-500">
-        <Link href="/" className="underline">
+        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
           Home
         </Link>{" "}
         ·{" "}
-        <Link href="/terms" className="underline">
+        <Link href="/terms" className="transition-colors hover:text-[var(--brand-hover)]">
           Terms
         </Link>
       </footer>
