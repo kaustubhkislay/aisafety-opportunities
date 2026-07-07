@@ -17,6 +17,12 @@ primary_region = "iad"
   source = "data"
   destination = "/data"
 
+# on-failure gives up after 10 retries and leaves the machine stopped — the
+# Discord bot then sits offline until a stray HTTP request auto-starts it
+# (live finding, 2026-07-07 crash-loop). Retry forever instead.
+[[restart]]
+  policy = "always"
+
 [http_service]
   internal_port = 8080
   force_https = true
