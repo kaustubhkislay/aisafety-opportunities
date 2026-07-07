@@ -124,3 +124,47 @@ async def slack_events(request: Request, background: BackgroundTasks) -> dict:
         logger.info("slack drop team=%s reason=%s", team_id, action.reason)
 
     return {"ok": True}
+
+
+_SCOPES = "channels:history,channels:read,reactions:read,team:read"
+
+
+@router.get("/slack/install")
+def slack_install():
+    client_id = os.environ.get("SLACK_CLIENT_ID", "")
+    redirect = os.environ.get("SLACK_REDIRECT_URL", "")
+    url = (
+        "https://slack.com/oauth/v2/authorize"
+        f"?client_id={client_id}&scope={_SCOPES}&redirect_uri={redirect}"
+    )
+    return RedirectResponse(url)
+
+
+@router.get("/slack/oauth/callback", response_class=HTMLResponse)
+async def slack_oauth_callback(code: str | None = None) -> HTMLResponse:
+    if not code:
+        return HTMLResponse("<p>Missing OAuth code.</p>", status_code=400)
+    try:
+        data = await _web.oauth_access(
+            os.environ.get("SLACK_CLIENT_ID", ""),
+            os.environ.get("SLACK_CLIENT_SECRET", ""),
+            code,
+            os.environ.get("SLACK_REDIRECT_URL", ""),
+        )
+    except SlackApiError as exc:
+        logger.warning("slack oauth exchange failed: %s", exc.error)
+        return HTMLResponse(f"<p>Slack install failed: {exc.error}</p>", status_code=502)
+    team = data.get("team") or {}
+    _tokens.save(
+        team.get("id", ""),
+        team.get("name", ""),
+        data.get("access_token", ""),
+        data.get("bot_user_id", ""),
+    )
+    logger.info("slack installed team=%s", team.get("id"))
+    return HTMLResponse(
+        "<h1>Installed!</h1>"
+        "<p>Now <code>/invite</code> the bot into your opportunities channel "
+        "(its name must contain “opportunities”). The last 14 days backfill "
+        "automatically, and new posts appear on the board within seconds.</p>"
+    )
