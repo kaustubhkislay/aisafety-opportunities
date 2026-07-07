@@ -177,7 +177,7 @@ export function OpportunityList({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--background)]/95 px-4 py-3 backdrop-blur-sm">
+      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm">
         <input
           type="search"
           placeholder="Search the board…"
