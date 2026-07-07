@@ -9,8 +9,7 @@ export const revalidate = 3600;
 const INSTALL_URL =
   "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
 
-const FEEDBACK_FORM_URL =
-  "https://docs.google.com/forms/d/1VNied9pCE5Fivrif-bMELj3ElNhY2HaCqN1VritakBE/viewform";
+const FEEDBACK_FORM_URL = "https://forms.gle/3bw8AoE8ZjETFMik7";
 
 const toc =
   "text-[11px] uppercase tracking-[0.18em] text-[var(--muted)] transition-colors hover:text-[var(--brand-hover)]";
