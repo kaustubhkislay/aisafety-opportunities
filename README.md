@@ -19,22 +19,26 @@ Installed Discord bot ──► backend ──► raw store ──► filter + P
 - Messages marked `[private]` / `[uni-reserved]` / `school-specific` / `internal` / `do-not-share`, or posted in a channel an owner sets private-by-default, are **never transmitted**.
 - An LLM extracts genuine opportunities, strips personal contact info, withholds suspicious links, and dedupes across communities.
 
-## Install the bot in your server (community owners)
+## Install the bot in your community (Discord or Slack)
 
-Takes about two minutes. You need **Manage Server** permission.
+Takes about two minutes. You need **Manage Server** permission on Discord, or
+the ability to install apps on Slack.
 
 1. **Have an opportunities channel.** The bot only reads channels whose name
    contains `opportunities` (e.g. `#opportunities`, `#ai-opportunities`).
-   Everything else in your server is invisible to it — by design.
-2. **Click the install link:**
+   Everything else in your community is invisible to it — by design.
+2. **Click the install link for your platform:**
 
-   > **[Add AI Safety Opportunities bot](https://discord.com/oauth2/authorize?client_id=1523518596108652554&scope=bot&permissions=66560)**
+   > **[Add to Discord](https://discord.com/oauth2/authorize?client_id=1523518596108652554&scope=bot&permissions=66560)** — pick your server and authorize. The bot asks for
+   > only two permissions — *View Channels* and *Read Message History*. It
+   > cannot post, manage, or delete anything.
+   >
+   > **[Add to Slack](https://aisopportunities-backend.fly.dev/slack/install)** — authorize (read-only scopes on public channels),
+   > then **`/invite` the bot** into your opportunities channel. Inviting it
+   > to any other channel does nothing.
 
-   Pick your server and authorize. The bot asks for only two permissions —
-   *View Channels* and *Read Message History*. It cannot post, manage, or
-   delete anything.
-3. **That's it.** Within a minute the bot backfills the last **14 days** of
-   your opportunities channel; genuine opportunities appear on
+3. **That's it.** The bot backfills the last **14 days** of your
+   opportunities channel; genuine opportunities appear on
    [aisopportunities.com](https://aisopportunities.com) about 20 seconds after
    they're posted (attributed to your community by name). Forwarded messages
    work too.
@@ -43,28 +47,16 @@ Takes about two minutes. You need **Manage Server** permission.
 
 - **Keep something off the site before posting:** include `[private]` or
   `[uni-reserved]` (or `school-specific` / `internal` / `do-not-share`)
-  anywhere in the message. It is dropped inside your server and never
-  transmitted.
+  anywhere in the message and it is never published. On Discord the bot drops
+  it inside your server, before anything is transmitted; on Slack, which
+  pushes events to our backend, it is discarded at ingestion — before storage
+  or processing.
 - **Pull something back after posting:** react with 🔒, or edit the message to
   add `[private]` / `[uni-reserved]`. The published record is deleted and the
   site updates within seconds.
-- **Leave entirely:** kick the bot. Every record, raw message, and bookmark
-  from your server is purged immediately — uninstall means gone.
-
-## Install the bot in your Slack workspace
-
-1. **Click the install link:**
-
-   > **[Add AI Safety Opportunities to Slack](https://aisopportunities-backend.fly.dev/slack/install)**
-
-   and authorize — the app asks only for read scopes on public channels.
-2. **`/invite` the bot** into your opportunities channel (name must contain
-   `opportunities`). Inviting it to any other channel does nothing.
-3. **That's it** — the last 14 days backfill and new posts appear on the site
-   within seconds. `[private]`-style tags, 🔒-reaction retraction, and
-   uninstall purge work exactly as on Discord, with one honest difference:
-   Slack pushes events to our backend, so excluded messages are discarded at
-   ingestion (before storage or processing) rather than inside your workspace.
+- **Leave entirely:** kick the bot (Discord) or uninstall the app (Slack).
+  Every record and raw message from your community is purged immediately —
+  uninstall means gone.
 
 ## Self-hosting your own instance
 

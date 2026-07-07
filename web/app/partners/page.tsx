@@ -15,7 +15,7 @@ const DISCORD_INSTALL_URL =
   "https://discord.com/oauth2/authorize?client_id=1523518596108652554&scope=bot&permissions=66560";
 const SLACK_INSTALL_URL = "https://aisopportunities-backend.fly.dev/slack/install";
 const INSTALL_DOCS_URL =
-  "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-server-community-owners";
+  "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-community-discord-or-slack";
 
 // Known community logos (files in web/public); communities without an entry
 // render without a logo.
