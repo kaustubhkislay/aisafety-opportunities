@@ -171,13 +171,11 @@ export function OpportunityList({
     const open: Opportunity[] = [];
     const past: Opportunity[] = [];
     for (const o of visible) {
+      // Precedence: closing-soon > newly-added > open.
       const status = deriveStatus(o.deadline, now);
-      if (status !== "expired" && o.dateSeen === today) {
-        fresh.push(o);
-        continue;
-      }
       if (status === "closing-soon") closing.push(o);
       else if (status === "expired") past.push(o);
+      else if (o.dateSeen === today) fresh.push(o);
       else open.push(o);
     }
     return { fresh, closing, open, past };
