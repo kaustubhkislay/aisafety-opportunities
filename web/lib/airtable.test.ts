@@ -133,3 +133,15 @@ describe("categories", () => {
     expect(mapRecord({ title: "X" }).categories).toEqual([]);
   });
 });
+
+it("prefers the extracted description and falls back to raw text", () => {
+  const withDesc = mapRecord({
+    title: "T",
+    description: "A fellowship for early-career researchers.",
+    raw_text: "original message text",
+  });
+  expect(withDesc.description).toBe("A fellowship for early-career researchers.");
+
+  const withoutDesc = mapRecord({ title: "T", raw_text: "original message text" });
+  expect(withoutDesc.description).toBe("original message text");
+});

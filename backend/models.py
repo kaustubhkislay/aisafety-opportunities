@@ -36,6 +36,7 @@ class Opportunity(BaseModel):
     location: str | None = None
     remote: bool = False
     categories: list[str] = ["other"]
+    description: str | None = None
 
     @field_validator("categories", mode="before")
     @classmethod
