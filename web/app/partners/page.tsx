@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { loadOpportunitiesResult } from "@/lib/airtable";
+import { logoFor } from "@/lib/logos";
 import { deriveStatus } from "@/lib/status";
 
 export const revalidate = 3600;
@@ -17,11 +18,9 @@ const SLACK_INSTALL_URL = "https://aisopportunities-backend.fly.dev/slack/instal
 const INSTALL_DOCS_URL =
   "https://github.com/kaustubhkislay/aisafety-opportunities#install-the-bot-in-your-community-discord-or-slack";
 
-// Known community logos (files in web/public); communities without an entry
-// render without a logo.
-const LOGOS: Record<string, string> = {
-  "Wisconsin AI Safety Initiative": "/waisi-full.png",
-};
+// Community logos live in web/lib/logos.ts (alias-matched against the
+// connected server/workspace name); communities without a match render
+// without a logo.
 
 export default async function PartnersPage() {
   const { items } = await loadOpportunitiesResult();
@@ -43,20 +42,23 @@ export default async function PartnersPage() {
       <h1 className="font-display text-3xl font-bold text-[var(--brand)]">Partner communities</h1>
 
       <ul className="mt-8 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-        {partners.map(([name]) => (
-          <li key={name} className="flex items-center gap-3">
-            {LOGOS[name] && (
-              <Image
-                src={LOGOS[name]}
-                alt={`${name} logo`}
-                width={455}
-                height={96}
-                className="h-6 w-auto shrink-0"
-              />
-            )}
-            <span className="min-w-0 font-display text-lg font-medium leading-snug">{name}</span>
-          </li>
-        ))}
+        {partners.map(([name]) => {
+          const logo = logoFor(name);
+          return (
+            <li key={name} className="flex items-center gap-3">
+              {logo && (
+                <Image
+                  src={logo}
+                  alt={`${name} logo`}
+                  width={455}
+                  height={96}
+                  className="h-6 w-auto shrink-0"
+                />
+              )}
+              <span className="min-w-0 font-display text-lg font-medium leading-snug">{name}</span>
+            </li>
+          );
+        })}
         {partners.length === 0 && (
           <li className="col-span-full text-[var(--muted)]">No communities connected yet.</li>
         )}
