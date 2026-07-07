@@ -1,3 +1,4 @@
+import { sanitizeExcerpt } from "@/lib/excerpt";
 import type { Opportunity } from "@/lib/types";
 
 function str(v: unknown): string {
@@ -27,6 +28,8 @@ export function mapRecord(fields: Record<string, unknown>): Opportunity {
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
+    // Sanitize server-side: only the scrubbed excerpt ever reaches the client.
+    description: sanitizeExcerpt(str(fields.raw_text)),
   };
 }
 

@@ -43,15 +43,16 @@ export default function PrivacyPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">Public by design — but only curated fields</h2>
+        <h2 className="text-lg font-semibold">Public by design — but only sanitized content</h2>
         <p className="mt-2">
           Everything that survives filtering is published on this site; there is no private data
           product. An automated pipeline extracts structured opportunity fields (title,
           organization, type, deadline, link, location), strips personal contact details such as
           personal emails, phone numbers, and DM handles, and withholds suspicious links. The site
-          shows only those curated fields — never the raw message text. The original message is
-          retained in our processing store solely to support extraction and owner auditing, and is
-          deleted by retraction or purge (below).
+          shows those curated fields plus a sanitized excerpt of the posting&apos;s own text, with
+          personal contact details and platform mentions removed before anything is sent to the
+          browser. The original, unsanitized message is retained in our processing store solely to
+          support extraction and owner auditing, and is deleted by retraction or purge (below).
         </p>
       </section>
 
