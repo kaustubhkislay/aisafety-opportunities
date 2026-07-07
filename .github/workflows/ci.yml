@@ -21,6 +21,25 @@ jobs:
         if: steps.guard.outputs.run == 'true'
         run: uv run --group dev pytest -q
 
+  # Tests run on the source tree; production runs the Docker image. Build the
+  # image and import the entrypoint modules inside it, so a Dockerfile gap
+  # (e.g. a COPY missing a new package — the 2026-07-07 crash-loop) fails the
+  # PR instead of production.
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect deploy image
+        id: guard
+        run: |
+          if [ -f deploy/Dockerfile ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Build the deploy image
+        if: steps.guard.outputs.run == 'true'
+        run: docker build -f deploy/Dockerfile -t backend-image .
+      - name: Smoke-test imports inside the image
+        if: steps.guard.outputs.run == 'true'
+        run: docker run --rm backend-image python -c "import backend.app, backend.worker, backend.digest, backend.status_job, bot.client"
+
   web:
     runs-on: ubuntu-latest
     defaults:
