@@ -38,14 +38,14 @@ export function SubscribeForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.org"
-        className="rounded border border-gray-300 px-3 py-1.5 text-sm"
+        className="w-40 border-b border-[var(--edge)] bg-transparent px-1 py-1.5 text-sm focus:border-[var(--brand)] focus:outline-none"
       />
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded bg-gray-900 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+        className="rounded bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px disabled:opacity-50"
       >
-        {status === "loading" ? "Subscribing…" : "Get the digest"}
+        {status === "loading" ? "Subscribing…" : "Get the daily digest"}
       </button>
       {status === "ok" && <span className="text-sm text-green-700">Subscribed — check your inbox.</span>}
       {status === "error" && <span className="text-sm text-red-700">Something went wrong. Try again.</span>}
