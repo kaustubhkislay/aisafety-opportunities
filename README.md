@@ -89,11 +89,12 @@ yourself:
 | Path | What |
 |------|------|
 | `bot/` | Thin Discord bot (gateway listener, edge exclusion, retraction) |
+| `slackbot/` | Slack adapter (Events API translation, OAuth, per-workspace tokens) |
 | `backend/` | Ingestion API + extraction pipeline |
 | `web/` | Public website (Vercel) |
-| `docs/` | Design spec and data policy |
+| `docs/` | Historical design spec + launch ledger (current architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md)) |
 
-See [`docs/design-spec.md`](docs/design-spec.md) for the full design.
+Current architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md). Original design: [`docs/design-spec.md`](docs/design-spec.md) (historical).
 
 ## Status
 
@@ -101,7 +102,7 @@ See [`docs/design-spec.md`](docs/design-spec.md) for the full design.
 
 ## Privacy
 
-The bot only reads channels an owner explicitly authorizes. Excluded/private messages never leave the server. Removing the bot purges that server's data. The full policy lives at [aisopportunities.com/privacy](https://aisopportunities.com/privacy).
+The bot only reads channels an owner explicitly authorizes. Excluded/private messages never leave the server. Removing the bot purges that server's data — cursors included. The full policy lives at [aisopportunities.com/privacy](https://aisopportunities.com/privacy).
 
 ## Secrets
 
