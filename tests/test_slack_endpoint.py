@@ -22,6 +22,9 @@ class FakeAirtable:
         self.purged_servers.append(server_id)
         return 1
 
+    def remove_server_attribution(self, names: set) -> int:
+        return 0
+
 
 class FakeScope:
     def __init__(self):
