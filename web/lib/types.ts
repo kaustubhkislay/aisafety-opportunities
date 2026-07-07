@@ -16,4 +16,6 @@ export interface Opportunity {
   dedupKey: string;
   sourceServers: string[];
   categories: string[];
+  /** Sanitized excerpt of the original posting (contact details stripped). */
+  description: string;
 }

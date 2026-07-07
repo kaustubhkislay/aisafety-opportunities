@@ -26,9 +26,11 @@ describe("privacy page", () => {
     expect(body).toMatch(/owner/i);
   });
 
-  it("states that only curated fields are shown, never raw message text", () => {
+  it("states that published content is sanitized before it reaches the browser", () => {
     render(<PrivacyPage />);
-    expect(document.body.textContent).toMatch(/raw message text|raw_text/i);
+    const body = document.body.textContent ?? "";
+    expect(body).toMatch(/sanitized excerpt/i);
+    expect(body).toMatch(/contact details.*removed|removed before anything is sent/i);
   });
 
   it("covers subscriber emails and unsubscribe", () => {

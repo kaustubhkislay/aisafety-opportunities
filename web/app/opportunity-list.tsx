@@ -64,7 +64,7 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
   const badge = TYPE_COLORS[o.type] ?? TYPE_COLORS.other;
   return (
     <li
-      className="relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-6 shadow-[0_1px_4px_rgba(28,25,23,0.12)]"
+      className="group relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-6 shadow-[0_1px_4px_rgba(28,25,23,0.12)]"
     >
       <Pin urgent={chip.urgent} />
       <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
@@ -100,6 +100,14 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
       <p className="text-sm text-[var(--muted)]">
         {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" / ")}
       </p>
+      {o.description && (
+        <div
+          role="tooltip"
+          className="pointer-events-none invisible absolute left-2 right-2 top-[calc(100%-0.5rem)] z-20 max-h-56 overflow-hidden whitespace-pre-line rounded-sm bg-[var(--card)] p-3 text-[13px] leading-relaxed opacity-0 shadow-[0_4px_16px_rgba(28,25,23,0.25)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100"
+        >
+          {o.description}
+        </div>
+      )}
     </li>
   );
 }
