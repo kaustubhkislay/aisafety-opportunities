@@ -12,7 +12,7 @@ import hmac
 import logging
 import os
 import re
-from datetime import date
+from datetime import date, datetime, timezone
 from html import escape
 
 from backend.status_job import derive_status
@@ -72,6 +72,7 @@ def build_digest(
     unsubscribe_url: str,
     site_url: str = "https://aisopportunities.com",
     today: date | None = None,
+    sent_at: str | None = None,
 ) -> dict:
     """Compose subject/html/text from already-filtered, already-sorted opportunities.
 
@@ -105,7 +106,7 @@ def build_digest(
     <a href="{escape(site_url)}" style="display:inline-block;margin-top:10px;background:{BRAND};color:#ffffff;padding:9px 16px;border-radius:4px;text-decoration:none;font-size:14px;font-family:Helvetica,Arial,sans-serif">View the full board</a>
     <p style="margin:26px 0 0;padding-top:14px;border-top:1px solid #e8dcc8;font-size:12px;color:{MUTED};font-family:Helvetica,Arial,sans-serif">
       You get this daily when new opportunities appear, and silence otherwise.
-      <a href="{escape(unsubscribe_url)}" style="color:{MUTED}">Unsubscribe</a>
+      <a href="{escape(unsubscribe_url)}" style="color:{MUTED}">Unsubscribe</a>{f"<br>Sent {escape(sent_at)}" if sent_at else ""}
     </p>
   </div>
 </div>"""
@@ -179,6 +180,7 @@ def run_digest(
     today: date,
     since: str | None = None,
     skip_when_empty: bool = False,
+    sent_at: str | None = None,
 ) -> int:
     """Send the digest to every active subscriber. Returns the number sent."""
     items = [o for o in opportunities if derive_status(o.get("deadline"), today) != "expired"]
@@ -192,7 +194,7 @@ def run_digest(
     count = 0
     for email in subscriber_store.active_emails():
         url = f"{unsubscribe_base}?token={make_token(email, secret)}"
-        digest = build_digest(items, url, today=today)
+        digest = build_digest(items, url, today=today, sent_at=sent_at)
         sender(email, digest["subject"], digest["html"], digest["text"])
         count += 1
     log.info("digest: sent to %d subscriber(s), %d item(s)", count, len(items))
@@ -275,6 +277,7 @@ def main(sender=None) -> None:
         today=date.today(),
         since=(date.today() - timedelta(days=1)).isoformat(),
         skip_when_empty=True,
+        sent_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
 
 
