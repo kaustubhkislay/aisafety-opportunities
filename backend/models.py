@@ -23,6 +23,9 @@ class SubscribeRequest(BaseModel):
     email: str
 
 
+_CATEGORIES = {"tech", "gov", "other"}
+
+
 class Opportunity(BaseModel):
     is_opportunity: bool
     title: str | None = None
@@ -32,6 +35,17 @@ class Opportunity(BaseModel):
     link: str | None = None
     location: str | None = None
     remote: bool = False
+    categories: list[str] = ["other"]
+
+    @field_validator("categories", mode="before")
+    @classmethod
+    def _clean_categories(cls, v):
+        # Multi-label tech/gov/other; unknown labels dropped, empty -> other.
+        if not isinstance(v, list):
+            v = [v] if isinstance(v, str) else []
+        cleaned = [c.strip().lower() for c in v if isinstance(c, str)]
+        cleaned = [c for c in cleaned if c in _CATEGORIES]
+        return cleaned or ["other"]
 
     @field_validator("is_opportunity", "remote", mode="before")
     @classmethod

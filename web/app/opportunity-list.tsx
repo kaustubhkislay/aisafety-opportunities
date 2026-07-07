@@ -68,7 +68,17 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
     >
       <Pin urgent={chip.urgent} />
       <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
-        <span className={`font-medium ${badge}`}>{o.type}</span>
+        <span className="flex flex-wrap gap-2">
+          <span className={`font-medium ${badge}`}>{o.type}</span>
+          {o.categories.filter((c) => c !== "other").map((c) => (
+            <span
+              key={c}
+              className={c === "tech" ? "font-medium text-teal-700" : "font-medium text-indigo-700"}
+            >
+              {c}
+            </span>
+          ))}
+        </span>
         <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
           {chip.text}
         </span>
@@ -134,6 +144,7 @@ export function OpportunityList({
   const [type, setType] = useState("");
   const [sortBy, setSortBy] = useState<"deadline" | "newest">("deadline");
   const [location, setLocation] = useState("");
+  const [category, setCategory] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showPast, setShowPast] = useState(false);
 
@@ -146,11 +157,11 @@ export function OpportunityList({
     () =>
       filterAndSort(
         opportunities,
-        { text, types: type ? [type] : [], locations: location ? [location] : [], sortBy, remoteOnly, showPast },
+        { text, types: type ? [type] : [], locations: location ? [location] : [], categories: category ? [category] : [], sortBy, remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, type, location, sortBy, remoteOnly, showPast, nowISO],
+    [opportunities, text, type, location, category, sortBy, remoteOnly, showPast, nowISO],
   );
 
   const groups = useMemo(() => {
@@ -190,6 +201,17 @@ export function OpportunityList({
           {TYPES.map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
+        </select>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className={control}
+          aria-label="Filter by category"
+        >
+          <option value="">All categories</option>
+          <option value="tech">tech</option>
+          <option value="gov">gov</option>
+          <option value="other">other</option>
         </select>
         {locations.length > 0 && (
           <select

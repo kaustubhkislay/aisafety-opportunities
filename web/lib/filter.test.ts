@@ -7,7 +7,7 @@ const NOW = new Date("2026-06-26T12:00:00Z");
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: null, link: null, location: null,
-    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [],
+    remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [],
     ...p,
   };
 }
@@ -82,5 +82,17 @@ describe("sorters (per 80k / aisafety.com analysis)", () => {
       opp({ title: "UK", location: "London", dedupKey: "2" }),
     ];
     expect(filterAndSort(items, { locations: ["London"] }, NOW).map((o) => o.title)).toEqual(["UK"]);
+  });
+});
+
+describe("category filter", () => {
+  it("matches any of an item's categories", () => {
+    const items = [
+      opp({ title: "Tech", categories: ["tech"], dedupKey: "1" }),
+      opp({ title: "Both", categories: ["tech", "gov"], dedupKey: "2" }),
+      opp({ title: "Other", categories: ["other"], dedupKey: "3" }),
+    ];
+    expect(filterAndSort(items, { categories: ["gov"] }, NOW).map((o) => o.title)).toEqual(["Both"]);
+    expect(filterAndSort(items, { categories: ["tech"] }, NOW).map((o) => o.title).sort()).toEqual(["Both", "Tech"]);
   });
 });

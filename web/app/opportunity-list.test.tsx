@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { OpportunityList } from "@/app/opportunity-list";
 import type { Opportunity } from "@/lib/types";
@@ -7,7 +7,7 @@ import type { Opportunity } from "@/lib/types";
 function opp(p: Partial<Opportunity>): Opportunity {
   return {
     title: "T", org: "O", type: "job", deadline: "2027-01-01", link: "https://x.org",
-    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], sourceServers: [],
+    location: null, remote: false, sourceServer: "", sourceChannel: "", dateSeen: null, dedupKey: "", sourceServers: [], categories: [], sourceServers: [],
     ...p,
   };
 }
@@ -128,5 +128,35 @@ describe("newly added", () => {
     expect(screen.getByRole("heading", { name: /newly added/i })).toBeInTheDocument();
     expect(screen.getAllByText("Fresh Today")).toHaveLength(1);
     expect(screen.getByText("Older")).toBeInTheDocument();
+  });
+});
+
+describe("category badges and filter", () => {
+  it("renders category badges on cards", () => {
+    render(
+      <OpportunityList
+        opportunities={[opp({ title: "X", categories: ["tech", "gov"], dedupKey: "x" })]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    // dropdown options also carry the labels, so scope to the card
+    const card = screen.getByRole("listitem");
+    expect(within(card).getByText("tech")).toBeInTheDocument();
+    expect(within(card).getByText("gov")).toBeInTheDocument();
+  });
+
+  it("filters by category", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Techy", categories: ["tech"], dedupKey: "a" }),
+          opp({ title: "Policy", categories: ["gov"], dedupKey: "b" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    await userEvent.selectOptions(screen.getByLabelText("Filter by category"), "gov");
+    expect(screen.getByText("Policy")).toBeInTheDocument();
+    expect(screen.queryByText("Techy")).not.toBeInTheDocument();
   });
 });

@@ -161,3 +161,9 @@ def test_worker_repairs_year_resolution_errors():
         extractor=StubExtractor(opp), store=store, model_name="m",
     )
     assert store.upserts[0][0]["deadline"] == "2026-07-22"
+
+
+def test_build_fields_includes_categories():
+    opp = _opp(title="X", categories=["tech", "gov"])
+    fields = build_fields(opp, ROW, "k", "m")
+    assert fields["categories"] == ["tech", "gov"]
