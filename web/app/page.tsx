@@ -19,7 +19,7 @@ export default async function Home() {
     <main className="mx-auto max-w-5xl px-4 py-8">
       <header className="mb-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="font-display text-3xl font-bold">AI Safety Opportunities</h1>
+          <h1 className="font-display text-3xl font-bold text-[var(--brand)]">AI Safety Opportunities</h1>
           <p className="text-sm text-[var(--muted)]">
             {open.length} open · {closingSoon.length} closing soon
             {communities.size > 0 ? ` · ${communities.size} ${communities.size === 1 ? "community" : "communities"}` : ""}
@@ -28,9 +28,9 @@ export default async function Home() {
         <p className="mt-1 text-sm text-[var(--muted)]">
           Jobs, fellowships, grants, events, and courses — posted by AI-safety communities,
           curated automatically.{" "}
-          <a href={INSTALL_URL} className="underline hover:text-amber-700">Add your community</a>
+          <a href={INSTALL_URL} className="underline hover:text-[var(--brand)]">Add your community</a>
           {" · "}
-          <a href="/feed.xml" className="underline hover:text-amber-700">RSS</a>
+          <a href="/feed.xml" className="underline hover:text-[var(--brand)]">RSS</a>
         </p>
       </header>
 
@@ -42,11 +42,11 @@ export default async function Home() {
       )}
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <a href="/privacy" className="underline hover:text-amber-700">Privacy</a>
+        <a href="/privacy" className="underline hover:text-[var(--brand)]">Privacy</a>
         {" · "}
-        <a href="/terms" className="underline hover:text-amber-700">Terms</a>
+        <a href="/terms" className="underline hover:text-[var(--brand)]">Terms</a>
         {" · "}
-        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="underline hover:text-amber-700">
+        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="underline hover:text-[var(--brand)]">
           Open source
         </a>
       </footer>
