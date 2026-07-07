@@ -55,13 +55,13 @@ export default async function Home() {
       <OpportunityList opportunities={opportunities} nowISO={now.toISOString()} />
 
       <footer className="mt-12 border-t border-[var(--edge)] pt-4 text-sm text-[var(--muted)]">
-        <a href="/privacy" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">Privacy</a>
+        <a href="/privacy" className="hover:text-[var(--brand-hover)]">Privacy</a>
         {" · "}
-        <a href="/terms" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">Terms</a>
+        <a href="/terms" className="hover:text-[var(--brand-hover)]">Terms</a>
         {" · "}
-        <Link href="/partners" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">Partners</Link>
+        <Link href="/partners" className="hover:text-[var(--brand-hover)]">Partners</Link>
         {" · "}
-        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="underline decoration-1 underline-offset-2 hover:text-[var(--brand-hover)]">
+        <a href="https://github.com/kaustubhkislay/aisafety-opportunities" className="hover:text-[var(--brand-hover)]">
           Open source
         </a>
       </footer>

@@ -37,7 +37,7 @@ export default function TermsPage() {
           Don&apos;t use the site or its feeds to spam, misrepresent listings, or attempt to inject
           malicious or misleading content into source communities. Server owners may remove the bot
           at any time, which deletes their data (see{" "}
-          <Link href="/privacy" className="underline">
+          <Link href="/privacy" className="transition-colors hover:text-[var(--brand-hover)]">
             Privacy
           </Link>
           ).
@@ -53,11 +53,11 @@ export default function TermsPage() {
       </section>
 
       <footer className="mt-12 text-sm text-gray-500">
-        <Link href="/" className="underline">
+        <Link href="/" className="transition-colors hover:text-[var(--brand-hover)]">
           Home
         </Link>{" "}
         ·{" "}
-        <Link href="/privacy" className="underline">
+        <Link href="/privacy" className="transition-colors hover:text-[var(--brand-hover)]">
           Privacy
         </Link>
       </footer>
