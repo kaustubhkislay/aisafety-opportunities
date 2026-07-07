@@ -123,7 +123,7 @@ function Section({
       <h2 className={`font-display mb-3 text-lg font-semibold ${accent ? "text-amber-700" : ""}`}>
         {title}
       </h2>
-      <ul className="grid grid-cols-1 gap-5 pt-1.5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-4 pt-1.5 sm:gap-5">
         {items.map((o) => (
           <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
         ))}
@@ -187,14 +187,14 @@ export function OpportunityList({
   const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]";
 
   return (
-    <div>
-      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm">
+    <div className="lg:flex lg:items-start lg:gap-8">
+      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm lg:top-4 lg:order-2 lg:mx-0 lg:w-52 lg:shrink-0 lg:flex-col lg:items-stretch lg:rounded lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
         <input
           type="search"
           placeholder="Search the board…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1`}
+          className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1 lg:w-full`}
         />
         <select value={type} onChange={(e) => setType(e.target.value)} className={control} aria-label="Filter by type">
           <option value="">All types</option>
@@ -245,11 +245,13 @@ export function OpportunityList({
         </label>
       </div>
 
-      <Section title="Newly added" items={groups.fresh} now={now} id="new" />
-      <Section title="Closing this week" items={groups.closing} now={now} accent id="closing" />
-      <Section title="Open" items={groups.open} now={now} id="open" />
-      {showPast && <Section title="Past" items={groups.past} now={now} id="past" />}
-      {visible.length === 0 && <p className="text-[var(--muted)]">Nothing on the board matches.</p>}
+      <div className="lg:order-1 lg:min-w-0 lg:flex-1">
+        <Section title="Newly added" items={groups.fresh} now={now} id="new" />
+        <Section title="Closing this week" items={groups.closing} now={now} accent id="closing" />
+        <Section title="Open" items={groups.open} now={now} id="open" />
+        {showPast && <Section title="Past" items={groups.past} now={now} id="past" />}
+        {visible.length === 0 && <p className="text-[var(--muted)]">Nothing on the board matches.</p>}
+      </div>
     </div>
   );
 }
