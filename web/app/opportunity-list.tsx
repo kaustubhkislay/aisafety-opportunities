@@ -88,7 +88,7 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
         )}
       </h3>
       <p className="text-sm text-[var(--muted)]">
-        {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" · ")}
+        {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" / ")}
       </p>
     </li>
   );
