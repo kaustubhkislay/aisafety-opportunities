@@ -99,3 +99,18 @@ def test_upsert_exact_match_skips_semantic_matcher():
     _, action = store.upsert({"title": "X", "dedup_key": "k1"}, "k1", semantic_match=matcher)
     assert action == "updated"
     assert matcher.calls == []  # exact key hit — no LLM spend
+
+
+def test_upsert_update_preserves_original_date_seen():
+    backend = FakeBackend()
+    store = AirtableStore(backend)
+    rid, _ = store.upsert(
+        {"title": "ML Fellow", "dedup_key": "url:org.org/apply", "date_seen": "2026-07-01"},
+        "url:org.org/apply",
+    )
+    # Reposted a week later: attribution may update, but "newly added" must not resurface it.
+    store.upsert(
+        {"title": "ML Fellow", "dedup_key": "url:org.org/apply", "date_seen": "2026-07-08"},
+        "url:org.org/apply",
+    )
+    assert backend.records[rid]["date_seen"] == "2026-07-01"
