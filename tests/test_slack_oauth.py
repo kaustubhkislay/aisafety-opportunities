@@ -124,3 +124,64 @@ def test_callback_rejects_expired_state(tmp_path, monkeypatch):
 
     monkeypatch.setattr(slack_module._web, "oauth_access", fake_oauth_access)
     assert client.get(f"/slack/oauth/callback?code=c&state={stale}").status_code == 400
+
+
+def test_callback_error_page_hides_slack_error(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+
+    async def failing_oauth_access(client_id, client_secret, code, redirect_uri):
+        from slackbot.web import SlackApiError
+        raise SlackApiError("bad_client_secret")
+
+    monkeypatch.setattr(slack_module._web, "oauth_access", failing_oauth_access)
+    resp = client.get(f"/slack/oauth/callback?code=bad&state={_state()}")
+    assert resp.status_code == 502
+    assert "bad_client_secret" not in resp.text
+    assert "try again" in resp.text.lower()
+
+
+def test_slack_health_valid_when_slack_says_invalid_code(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+
+    async def dummy_rejected(client_id, client_secret, code, redirect_uri):
+        from slackbot.web import SlackApiError
+        raise SlackApiError("invalid_code")
+
+    monkeypatch.setattr(slack_module._web, "oauth_access", dummy_rejected)
+    resp = client.get("/slack/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"oauth_secret": "valid"}
+
+
+def test_slack_health_invalid_on_bad_client_secret(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+
+    async def secret_rejected(client_id, client_secret, code, redirect_uri):
+        from slackbot.web import SlackApiError
+        raise SlackApiError("bad_client_secret")
+
+    monkeypatch.setattr(slack_module._web, "oauth_access", secret_rejected)
+    resp = client.get("/slack/health")
+    assert resp.json() == {"oauth_secret": "invalid", "slack_error": "bad_client_secret"}
+
+
+def test_slack_health_unconfigured_without_env(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+    monkeypatch.delenv("SLACK_CLIENT_SECRET", raising=False)
+    resp = client.get("/slack/health")
+    assert resp.json() == {"oauth_secret": "unconfigured"}
+
+
+def test_slack_health_result_is_cached(tmp_path, monkeypatch):
+    client, slack_module = _setup(tmp_path, monkeypatch)
+    calls = {"n": 0}
+
+    async def counting(client_id, client_secret, code, redirect_uri):
+        calls["n"] += 1
+        from slackbot.web import SlackApiError
+        raise SlackApiError("invalid_code")
+
+    monkeypatch.setattr(slack_module._web, "oauth_access", counting)
+    client.get("/slack/health")
+    client.get("/slack/health")
+    assert calls["n"] == 1

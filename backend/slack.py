@@ -136,6 +136,45 @@ async def slack_events(request: Request, background: BackgroundTasks) -> dict:
     return {"ok": True}
 
 
+# Cached so the public endpoint can't be used to hammer Slack's OAuth API.
+_OAUTH_CHECK_TTL_SECONDS = 600
+_oauth_check: dict = {"at": 0.0, "result": None}
+
+
+@router.get("/slack/health")
+async def slack_health() -> dict:
+    """Report whether the deployed Slack OAuth credentials are valid.
+
+    Sends a dummy-code exchange: Slack answers invalid_code when client id +
+    secret are valid, bad_client_secret/invalid_client_id when they are not.
+    Used by the fly-deploy gate so a dead secret is caught within minutes of
+    a deploy or rotation instead of by the next failed install.
+    """
+    client_id = os.environ.get("SLACK_CLIENT_ID", "")
+    client_secret = os.environ.get("SLACK_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
+        return {"oauth_secret": "unconfigured"}
+    now = time.time()
+    if _oauth_check["result"] is not None and now - _oauth_check["at"] < _OAUTH_CHECK_TTL_SECONDS:
+        return _oauth_check["result"]
+    try:
+        await _web.oauth_access(
+            client_id, client_secret, "healthcheck-dummy-code",
+            os.environ.get("SLACK_REDIRECT_URL", ""),
+        )
+        result = {"oauth_secret": "valid"}  # Slack accepted a dummy code (never expected)
+    except SlackApiError as exc:
+        if exc.error == "invalid_code":
+            result = {"oauth_secret": "valid"}
+        else:
+            result = {"oauth_secret": "invalid", "slack_error": exc.error}
+    except Exception:
+        logger.exception("slack oauth health probe failed")
+        return {"oauth_secret": "unknown"}  # network blip: don't cache, don't alarm
+    _oauth_check.update(at=now, result=result)
+    return result
+
+
 _SCOPES = "channels:history,channels:read,reactions:read,team:read"
 
 
@@ -168,8 +207,14 @@ async def slack_oauth_callback(
             os.environ.get("SLACK_REDIRECT_URL", ""),
         )
     except SlackApiError as exc:
+        # Log the real error; installers get a retry hint, not Slack internals
+        # (a bad_client_secret leaked verbatim during the 2026-07-07 rotation).
         logger.warning("slack oauth exchange failed: %s", exc.error)
-        return HTMLResponse(f"<p>Slack install failed: {exc.error}</p>", status_code=502)
+        return HTMLResponse(
+            "<p>Something went wrong completing the install — please try again "
+            "in a minute. If it keeps failing, email kaustubh.kislay@gmail.com.</p>",
+            status_code=502,
+        )
     team = data.get("team") or {}
     if not team.get("id") or not data.get("access_token") or not data.get("bot_user_id"):
         logger.warning("slack oauth response missing team/token fields")
