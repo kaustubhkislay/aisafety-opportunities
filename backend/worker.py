@@ -50,6 +50,7 @@ def process_message(
     spend_guard=None,
     is_tombstoned=None,
     deadline_enricher=None,
+    semantic_match=None,
 ) -> str:
     content = row["content"]
     if not filter_fn(content):
@@ -82,7 +83,11 @@ def process_message(
         log.info("message %s retracted during extraction; not publishing", row.get("message_id"))
         return "retracted"
     key = key_fn(opp)
-    _record_id, action = store.upsert(build_fields(opp, row, key, model_name), key)
+    fields = build_fields(opp, row, key, model_name)
+    if semantic_match is not None:
+        _record_id, action = store.upsert(fields, key, semantic_match=semantic_match)
+    else:
+        _record_id, action = store.upsert(fields, key)
     return action
 
 
@@ -137,8 +142,12 @@ def main() -> None:
         log.warning("SITE_URL/REVALIDATE_SECRET unset — site refresh is hourly ISR only")
 
     from backend.enrich import DeadlineFinder, enrich_deadline, page_text
+    from backend.semantic_dedup import DuplicateJudge, make_semantic_matcher
 
     finder = DeadlineFinder(client, model)
+    semantic_match = make_semantic_matcher(
+        store.backend, DuplicateJudge(client, model), spend_guard=spend_guard,
+    )
 
     def deadline_enricher(url):
         return enrich_deadline(
@@ -149,7 +158,7 @@ def main() -> None:
         status = process_message(
             row, extractor=extractor, store=store, model_name=model,
             spend_guard=spend_guard, is_tombstoned=raw_store.is_processed,
-            deadline_enricher=deadline_enricher,
+            deadline_enricher=deadline_enricher, semantic_match=semantic_match,
         )
         maybe_revalidate(status, revalidator)
         return status

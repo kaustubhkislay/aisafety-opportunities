@@ -167,3 +167,22 @@ def test_build_fields_includes_categories():
     opp = _opp(title="X", categories=["tech", "gov"])
     fields = build_fields(opp, ROW, "k", "m")
     assert fields["categories"] == ["tech", "gov"]
+
+
+def test_process_message_passes_semantic_matcher_to_upsert():
+    class RecordingSemanticStore(RecordingStore):
+        def upsert(self, fields, dedup_key, semantic_match=None):
+            self.semantic_match = semantic_match
+            return super().upsert(fields, dedup_key)
+
+    store = RecordingSemanticStore()
+    matcher = object()
+    status = process_message(
+        ROW,
+        extractor=StubExtractor(_opp(title="ML Fellow", link="https://redwood.org/apply")),
+        store=store,
+        model_name="qwen-test",
+        semantic_match=matcher,
+    )
+    assert status == "created"
+    assert store.semantic_match is matcher
