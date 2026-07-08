@@ -27,6 +27,11 @@ class AirtableStore:
                 existing["fields"].get("source_servers"),
                 fields.get("source_servers"),
             )
+            # A repost refreshes content/attribution but must not resurface the
+            # record in the site's "Newly added" section: first-seen date wins.
+            original_seen = existing["fields"].get("date_seen")
+            if original_seen:
+                merged["date_seen"] = original_seen
             self.backend.update(existing["id"], merged)
             return existing["id"], "updated"
         if semantic_match is not None:
