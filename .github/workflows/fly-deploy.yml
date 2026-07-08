@@ -44,3 +44,13 @@ jobs:
             sleep 10
           done
           echo "backend unhealthy after deploy"; exit 1
+      # Catch a dead Slack client secret (e.g. rotated on Slack's side but not
+      # on Fly) within minutes of a deploy instead of via a failed install.
+      # Only "invalid" fails the run — "unknown"/"unconfigured" don't block.
+      - name: Slack OAuth credential gate
+        run: |
+          body=$(curl -s --max-time 15 https://aisopportunities-backend.fly.dev/slack/health || echo '{}')
+          echo "$body"
+          if echo "$body" | grep -q '"oauth_secret":"invalid"'; then
+            echo "Slack client secret is invalid in production"; exit 1
+          fi
