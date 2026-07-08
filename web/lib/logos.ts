@@ -14,6 +14,7 @@ interface LogoEntry {
 }
 
 const LOGO_ENTRIES: LogoEntry[] = [
+  { file: "/logos/ai-safety-initiative-at-georgia-tech.webp", aliases: ["AISI", "AI Safety Initiative at Georgia Tech", "AI Safety Initiative at Georgia Tech (AISI)"] },
   { file: "/logos/university-of-bayes.webp", aliases: ["University of Bayes"] },
   { file: "/waisi-full.png", aliases: ["WAISI", "Wisconsin AI Safety Initiative", "Wisconsin AI Safety Initiative (WAISI)"] },
   { file: "/logos/ai-alignment-illinois.webp", aliases: ["AI Alignment @ Illinois"] },
