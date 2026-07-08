@@ -19,7 +19,7 @@ const LOGO_ENTRIES: LogoEntry[] = [
   { file: "/logos/ai-alignment-illinois.webp", aliases: ["AI Alignment @ Illinois"] },
   { file: "/logos/columbia-ai-alignment-club.webp", aliases: ["CAIAC", "Columbia AI Alignment Club", "Columbia AI Alignment Club (CAIAC)"] },
   { file: "/logos/toronto-ai-safety-initiative.webp", aliases: ["Toronto AI Safety Initiative"] },
-  { file: "/logos/carnegie-mellon-ai-safety-initiative.webp", aliases: ["CASI", "Carnegie Mellon AI Safety Initiative", "Carnegie Mellon AI Safety Initiative (CASI)"] },
+  { file: "/logos/carnegie-mellon-ai-safety-initiative.webp", aliases: ["CASI", "Carnegie AI Safety Initiative", "Carnegie Mellon AI Safety Initiative", "Carnegie Mellon AI Safety Initiative (CASI)"] },
   { file: "/logos/ai-safety-at-ucsb.webp", aliases: ["AI Safety at UCSB"] },
   { file: "/logos/ai-security-and-risk-association-at-uf.webp", aliases: ["AI Security and Risk Association at UF", "AI Security and Risk Association at UF (AISRA)", "AISRA"] },
   { file: "/logos/virginia-ai-security-initiative.webp", aliases: ["VAISI", "Virginia AI Security Initiative", "Virginia AI Security Initiative (VAISI)"] },

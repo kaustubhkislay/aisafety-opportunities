@@ -32,3 +32,9 @@ describe("logoFor", () => {
     expect(logoFor("Some Random Server")).toBeNull();
   });
 });
+
+it("matches Carnegie's actual guild name (no 'Mellon')", () => {
+  expect(logoFor("Carnegie AI Safety Initiative")).toBe(
+    "/logos/carnegie-mellon-ai-safety-initiative.webp",
+  );
+});
