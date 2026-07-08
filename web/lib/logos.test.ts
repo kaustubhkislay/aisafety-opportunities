@@ -38,3 +38,9 @@ it("matches Carnegie's actual guild name (no 'Mellon')", () => {
     "/logos/carnegie-mellon-ai-safety-initiative.webp",
   );
 });
+
+it("matches Georgia Tech's guild name", () => {
+  expect(logoFor("AI Safety Initiative at Georgia Tech")).toBe(
+    "/logos/ai-safety-initiative-at-georgia-tech.webp",
+  );
+});
