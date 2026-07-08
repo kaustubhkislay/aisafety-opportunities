@@ -19,7 +19,7 @@ class AirtableStore:
     def __init__(self, backend):
         self.backend = backend
 
-    def upsert(self, fields: dict, dedup_key: str) -> tuple[str, str]:
+    def upsert(self, fields: dict, dedup_key: str, semantic_match=None) -> tuple[str, str]:
         existing = self.backend.find_by_dedup_key(dedup_key)
         if existing is not None:
             merged = dict(fields)
@@ -29,6 +29,18 @@ class AirtableStore:
             )
             self.backend.update(existing["id"], merged)
             return existing["id"], "updated"
+        if semantic_match is not None:
+            duplicate = semantic_match(fields)
+            if duplicate is not None:
+                # Same opportunity under a different link: the first-seen
+                # record's content wins, only the attribution accumulates
+                # (overwriting would flip link/title between variants).
+                servers = _union_servers(
+                    duplicate["fields"].get("source_servers"),
+                    fields.get("source_servers"),
+                )
+                self.backend.update(duplicate["id"], {"source_servers": servers})
+                return duplicate["id"], "updated"
         record_id = self.backend.create(fields)
         return record_id, "created"
 

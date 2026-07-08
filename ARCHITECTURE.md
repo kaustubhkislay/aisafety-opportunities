@@ -26,7 +26,7 @@ publish side. All of it is enforced in code and covered by tests.
 | Process | Entry | Role |
 |---|---|---|
 | API | `uvicorn backend.app` | `/ingest`, `/retract`, `/purge`, `/subscribe` (+confirm), `/unsubscribe`, `/ingested`, `/healthz`, and all `/slack/*` routes |
-| Worker | `backend.worker` | polls raw log → filter → spend cap → LLM extract/classify → deadline enrichment → link safety → dedup → Airtable upsert → site revalidate |
+| Worker | `backend.worker` | polls raw log → filter → spend cap → LLM extract/classify → deadline enrichment → link safety → dedup (exact key + LLM semantic fallback) → Airtable upsert → site revalidate |
 | Discord bot | `bot.client` | gateway events, exclusion, backfill (14-day window, `opportunities` channels), retraction, guild-join/remove |
 | Cron | supercronic | status job daily 09:00 UTC; digest daily 15:00 UTC (new items only, skips empty days) |
 
@@ -52,11 +52,11 @@ which is what makes that safe.
 - **Deploys:** merge to `main` → GitHub Actions deploys Fly (backend paths) and Vercel deploys `web/`. No manual deploy exists.
 - **Secrets:** `.env` (gitignored) is the owner's master copy; mirrored to Fly secrets + Vercel env. `slack_tokens.db` holds per-workspace tokens.
 - **Monitoring:** `.github/workflows/healthcheck.yml` probes `/healthz`, the site, and the feed every 15 minutes; failures open a "production health" issue.
-- **Spend safety:** `LLM_DAILY_CALL_CAP` bounds extraction+enrichment calls per UTC day.
+- **Spend safety:** `LLM_DAILY_CALL_CAP` bounds extraction+enrichment+dedup-judge calls per UTC day.
 
 ## Module map
 
-`backend/`: `app` (API), `slack` (Slack routes), `worker`, `extract` (LLM + classification), `enrich` (deadline from linked page), `filter` (cheap prefilter), `linksafety`, `dedup`, `airtable` (retrying backend), `store` (raw log), `subscribers`, `digest` (email build/send/tokens), `status_job`, `spend`, `revalidate`, `purge`, `feedback`→removed, `db` (SQLite settings), `models`.
+`backend/`: `app` (API), `slack` (Slack routes), `worker`, `extract` (LLM + classification), `enrich` (deadline from linked page), `filter` (cheap prefilter), `linksafety`, `dedup`, `semantic_dedup` (LLM same-opportunity merge across differing links), `airtable` (retrying backend), `store` (raw log), `subscribers`, `digest` (email build/send/tokens), `status_job`, `spend`, `revalidate`, `purge`, `feedback`→removed, `db` (SQLite settings), `models`.
 `bot/`: `client`, `coordinator`, `backfill`, `forwarder`, `exclusion` (tag authority incl. `RETRACTION_TAGS`), `retraction`, `channel_config`, `scope`, `messages`, `config`.
 `slackbot/`: `events` (event→action translation), `verify` (signatures + OAuth state), `tokens`, `channels` (scope cache), `backfill`, `ids` (cross-platform composite ids), `web` (Slack API client).
 `web/`: see `web/README.md`.

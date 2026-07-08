@@ -49,3 +49,53 @@ def test_upsert_unions_source_servers():
     store.upsert({"title": "X", "dedup_key": "k", "source_servers": "WAISI"}, "k")
     record = backend.find_by_dedup_key("k")
     assert record["fields"]["source_servers"] == "AI Safety Hub, WAISI"
+
+
+class StubMatcher:
+    def __init__(self, record):
+        self._record = record
+        self.calls = []
+
+    def __call__(self, fields):
+        self.calls.append(fields)
+        return self._record
+
+
+def test_upsert_merges_into_semantic_duplicate_without_overwriting():
+    backend = FakeBackend()
+    store = AirtableStore(backend)
+    rid, _ = store.upsert(
+        {"title": "Heron Fellowship", "link": "https://heronsec.ai/researchfellowship",
+         "dedup_key": "url:heronsec.ai/researchfellowship", "source_servers": "WAISI"},
+        "url:heronsec.ai/researchfellowship",
+    )
+
+    incoming = {"title": "Heron Fellowship (Sept-Nov)", "link": "https://heron.fillout.com/fellowship",
+                "dedup_key": "url:heron.fillout.com/fellowship", "source_servers": "CMU AIS"}
+    matcher = StubMatcher(backend.find_by_dedup_key("url:heronsec.ai/researchfellowship"))
+    rid2, action = store.upsert(incoming, "url:heron.fillout.com/fellowship", semantic_match=matcher)
+
+    assert (rid2, action) == (rid, "updated")
+    assert len(backend.records) == 1  # merged, not duplicated
+    # First-seen record's content wins; only the attribution is unioned.
+    assert backend.records[rid]["title"] == "Heron Fellowship"
+    assert backend.records[rid]["link"] == "https://heronsec.ai/researchfellowship"
+    assert backend.records[rid]["dedup_key"] == "url:heronsec.ai/researchfellowship"
+    assert backend.records[rid]["source_servers"] == "WAISI, CMU AIS"
+
+
+def test_upsert_creates_when_semantic_match_misses():
+    backend = FakeBackend()
+    store = AirtableStore(backend)
+    _, action = store.upsert({"title": "X", "dedup_key": "k1"}, "k1", semantic_match=lambda fields: None)
+    assert action == "created"
+
+
+def test_upsert_exact_match_skips_semantic_matcher():
+    backend = FakeBackend()
+    store = AirtableStore(backend)
+    store.upsert({"title": "X", "dedup_key": "k1"}, "k1")
+    matcher = StubMatcher(None)
+    _, action = store.upsert({"title": "X", "dedup_key": "k1"}, "k1", semantic_match=matcher)
+    assert action == "updated"
+    assert matcher.calls == []  # exact key hit — no LLM spend
