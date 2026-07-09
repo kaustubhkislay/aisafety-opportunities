@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { OpportunityList } from "@/app/opportunity-list";
+import { OpportunityList, cardLook } from "@/app/opportunity-list";
 import type { Opportunity } from "@/lib/types";
 
 function opp(p: Partial<Opportunity>): Opportunity {
@@ -213,21 +213,19 @@ describe("filter controls", () => {
 });
 
 describe("category badges and filter", () => {
-  it("renders hollow single-letter category chips (T, G, O)", () => {
+  it("renders full-word hollow pills for type and categories", () => {
     render(
       <OpportunityList
-        opportunities={[opp({ title: "X", categories: ["tech", "gov", "other"], dedupKey: "x" })]}
+        opportunities={[
+          opp({ title: "X", type: "fellowship", categories: ["tech", "gov"], dedupKey: "x" }),
+        ]}
         nowISO={NOW_ISO}
       />,
     );
     const card = screen.getAllByRole("listitem").find((li) => within(li).queryByText("X"))!;
-    const chip = (name: string) => within(card).getByTitle(name);
-    expect(chip("tech")).toHaveTextContent(/^T$/);
-    expect(chip("tech")).toHaveClass("border", "border-teal-700", "text-teal-700");
-    expect(chip("gov")).toHaveTextContent(/^G$/);
-    expect(chip("gov")).toHaveClass("border", "border-indigo-700", "text-indigo-700");
-    expect(chip("other")).toHaveTextContent(/^O$/);
-    expect(chip("other")).toHaveClass("border", "border-stone-400", "text-stone-500");
+    expect(within(card).getByText("fellowship")).toHaveClass("border", "uppercase");
+    expect(within(card).getByText("tech")).toHaveClass("border", "text-teal-700");
+    expect(within(card).getByText("gov")).toHaveClass("border", "text-indigo-700");
   });
 
   it("filters by category", async () => {
@@ -261,5 +259,77 @@ describe("group overlap", () => {
     expect(within(fresh).getByText("Urgent Fresh")).toBeInTheDocument();
     expect(within(fresh).getByText(/2 days left/)).toHaveClass("text-amber-700");
     expect(screen.getAllByText("Urgent Fresh")).toHaveLength(1);
+  });
+});
+
+describe("bulletin card restyle", () => {
+  it("expands and collapses the description with the +/− button", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Expandable", description: "Deep dive details here.", dedupKey: "e" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.queryByText("Deep dive details here.")).not.toBeInTheDocument();
+
+    const toggle = screen.getByRole("button", { name: "Show details" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(toggle);
+    expect(screen.getByText("Deep dive details here.")).toBeInTheDocument();
+
+    const close = screen.getByRole("button", { name: "Hide details" });
+    expect(close).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(close);
+    expect(screen.queryByText("Deep dive details here.")).not.toBeInTheDocument();
+  });
+
+  it("omits the toggle when there is no description", () => {
+    render(
+      <OpportunityList
+        opportunities={[opp({ title: "Bare", description: "", dedupKey: "b" })]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Show details" })).not.toBeInTheDocument();
+  });
+
+  it("assigns a deterministic paper style, fixture, and tilt per dedup key", () => {
+    const a = cardLook("some-key");
+    expect(cardLook("some-key")).toEqual(a);
+    expect(a.paper).toBeGreaterThanOrEqual(0);
+    expect(a.paper).toBeLessThan(6);
+    expect(a.fixture).toBeLessThan(3);
+    expect(a.tilt).toBeLessThan(4);
+    // different keys spread across looks
+    const papers = new Set(["a", "b2", "c33", "d444", "e5555", "f6", "g77", "h888"].map((k) => cardLook(k).paper));
+    expect(papers.size).toBeGreaterThan(2);
+  });
+
+  it("marks the fixture urgent only when closing soon", () => {
+    const { container } = render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Urgent", deadline: "2026-06-28", dedupKey: "u" }),
+          opp({ title: "Chill", deadline: "2026-09-01", dedupKey: "c" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    const fixtures = Array.from(container.querySelectorAll("[data-fixture]"));
+    expect(fixtures).toHaveLength(2);
+    const urgentFlags = fixtures.map((f) => f.getAttribute("data-urgent")).sort();
+    expect(urgentFlags).toEqual(["false", "true"]);
+  });
+
+  it("shows a rolling status for deadline-less opportunities", () => {
+    render(
+      <OpportunityList
+        opportunities={[opp({ title: "Open Ended", deadline: null, dedupKey: "r" })]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    expect(screen.getByText("rolling")).toBeInTheDocument();
   });
 });

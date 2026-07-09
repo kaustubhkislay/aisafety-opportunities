@@ -9,15 +9,8 @@ const TYPES: OppType[] = [
   "job", "internship", "fellowship", "grant", "event", "course", "reading-group", "other",
 ];
 
-// Category tags: hollow single-letter chips (T = tech, G = gov, O = other) —
-// outlined in the category color so they don't visually compete with the text.
-const CATEGORY_CHIP: Record<string, string> = {
-  tech: "border-teal-700 text-teal-700",
-  gov: "border-indigo-700 text-indigo-700",
-  other: "border-stone-400 text-stone-500",
-};
-
-const TYPE_COLORS: Record<string, string> = {
+// Hollow uppercase tag pills, colored per type/category.
+const PILL_COLORS: Record<string, string> = {
   job: "text-slate-600",
   internship: "text-sky-700",
   fellowship: "text-[var(--brand)]",
@@ -25,15 +18,20 @@ const TYPE_COLORS: Record<string, string> = {
   event: "text-purple-700",
   course: "text-teal-700",
   "reading-group": "text-rose-700",
+  tech: "text-teal-700",
+  gov: "text-indigo-700",
   other: "text-stone-500",
 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function deadlineChip(deadline: string | null, now: Date): { text: string; urgent: boolean } {
-  if (!deadline) return { text: "no deadline", urgent: false };
+function deadlineChip(
+  deadline: string | null,
+  now: Date,
+): { text: string; urgent: boolean; dot: string } {
+  if (!deadline) return { text: "rolling", urgent: false, dot: "bg-green-600" };
   const status = deriveStatus(deadline, now);
-  if (status === "expired") return { text: "closed", urgent: false };
+  if (status === "expired") return { text: "closed", urgent: false, dot: "bg-stone-400" };
   const due = new Date(`${deadline}T00:00:00Z`);
   if (status === "closing-soon") {
     const days = Math.round(
@@ -42,16 +40,44 @@ function deadlineChip(deadline: string | null, now: Date): { text: string; urgen
     return {
       text: days <= 0 ? "closes today" : days === 1 ? "1 day left" : `${days} days left`,
       urgent: true,
+      dot: "bg-red-600",
     };
   }
-  return { text: `closes ${MONTHS[due.getUTCMonth()]} ${due.getUTCDate()}`, urgent: false };
+  return {
+    text: `closes ${MONTHS[due.getUTCMonth()]} ${due.getUTCDate()}`,
+    urgent: false,
+    dot: "bg-sky-600",
+  };
 }
 
+// Deterministic per-card look: paper style, fixture, and tilt are picked by
+// hashing the dedup key, so the same card always renders the same way (no
+// Math.random — SSR- and test-safe).
+export function cardLook(key: string): { paper: number; fixture: number; tilt: number } {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return { paper: h % 6, fixture: (h >>> 3) % 3, tilt: (h >>> 5) % 4 };
+}
+
+const PAPERS = [
+  "paper-graph",
+  "paper-kraft",
+  "paper-lined",
+  "paper-torn",
+  "paper-sticky-green",
+  "paper-sticky-rose",
+];
+const TILTS = ["tilt-1", "tilt-2", "tilt-3", "tilt-4"];
+
+// Fixtures fastening each card to the board. Orange when the opportunity is
+// closing soon, an unremarkable gray otherwise.
 function Pin({ urgent }: { urgent: boolean }) {
-  const head = urgent ? "#d97706" : "var(--brand)";
+  const head = urgent ? "#d97706" : "#9a9da3";
   return (
     <svg
       aria-hidden
+      data-fixture="pin"
+      data-urgent={urgent}
       viewBox="0 0 24 32"
       className="absolute -top-3 left-1/2 h-7 w-5 -translate-x-1/2 drop-shadow-[0_1px_1px_rgba(28,25,23,0.35)]"
     >
@@ -67,32 +93,61 @@ function Pin({ urgent }: { urgent: boolean }) {
   );
 }
 
+function Tape({ urgent }: { urgent: boolean }) {
+  return (
+    <div
+      aria-hidden
+      data-fixture="tape"
+      data-urgent={urgent}
+      className={`absolute -top-2.5 left-1/2 h-5 w-16 -translate-x-1/2 -rotate-3 shadow-[0_1px_2px_rgba(28,25,23,0.2)] ${
+        urgent ? "bg-amber-500/55" : "bg-stone-300/65"
+      }`}
+    />
+  );
+}
+
+function Clip({ urgent }: { urgent: boolean }) {
+  const stroke = urgent ? "#d97706" : "#8a8d93";
+  return (
+    <svg
+      aria-hidden
+      data-fixture="clip"
+      data-urgent={urgent}
+      viewBox="0 0 20 44"
+      className="absolute -top-4 left-7 h-10 w-5 drop-shadow-[0_1px_1px_rgba(28,25,23,0.3)]"
+    >
+      <path
+        d="M6 12 a4 4 0 0 1 8 0 v22 a3 3 0 0 1 -6 0 V14 a1.5 1.5 0 0 1 3 0 v18"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+const FIXTURES = [Pin, Tape, Clip];
+
 function Card({ o, now }: { o: Opportunity; now: Date }) {
   const chip = deadlineChip(o.deadline, now);
-  const badge = TYPE_COLORS[o.type] ?? TYPE_COLORS.other;
+  const [expanded, setExpanded] = useState(false);
+  const look = cardLook(o.dedupKey || `${o.title}-${o.link}`);
+  const Fixture = FIXTURES[look.fixture];
+  const pill =
+    "rounded border border-current px-1.5 py-0.5 text-[10px] font-medium uppercase leading-none tracking-[0.08em]";
   return (
     <li
-      className="group relative flex flex-col gap-1.5 rounded-sm bg-[var(--card)] p-4 pt-6 shadow-[0_1px_4px_rgba(28,25,23,0.12)]"
+      className={`relative flex flex-col gap-1.5 rounded-sm p-4 pt-6 ${PAPERS[look.paper]} ${TILTS[look.tilt]}`}
     >
-      <Pin urgent={chip.urgent} />
-      <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
-        <span className="flex flex-wrap gap-2">
-          <span className={`font-medium ${badge}`}>{o.type}</span>
-          {o.categories.map((c) => (
-            <span
-              key={c}
-              title={c}
-              className={`rounded border px-1 py-0.5 text-[10px] font-medium leading-none tracking-normal ${CATEGORY_CHIP[c] ?? CATEGORY_CHIP.other}`}
-            >
-              {c.charAt(0).toUpperCase()}
-            </span>
-          ))}
-        </span>
-        <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
-          {chip.text}
-        </span>
-      </div>
-      <h3 className="font-display text-[17px] font-medium leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
+      <Fixture urgent={chip.urgent} />
+      <h3
+        className={`font-display text-[17px] font-medium leading-snug ${
+          expanded
+            ? ""
+            : "[display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden"
+        }`}
+      >
         {o.link ? (
           <a
             href={o.link}
@@ -109,14 +164,36 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
       <p className="text-sm text-[var(--muted)]">
         {[o.org, o.location, o.remote ? "remote" : null].filter(Boolean).join(" / ")}
       </p>
-      {o.description && (
-        <div
-          role="tooltip"
-          className="pointer-events-none invisible absolute left-2 right-2 top-[calc(100%-0.5rem)] z-20 max-h-56 overflow-hidden whitespace-pre-line rounded-sm bg-[var(--card)] p-3 text-[13px] leading-relaxed opacity-0 shadow-[0_4px_16px_rgba(28,25,23,0.25)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100"
-        >
-          {o.description}
-        </div>
+      {expanded && o.description && (
+        <p className="whitespace-pre-line text-[13px] leading-relaxed">{o.description}</p>
       )}
+      <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
+        <span className={`${pill} ${PILL_COLORS[o.type] ?? PILL_COLORS.other}`}>{o.type}</span>
+        {o.categories.map((c) => (
+          <span key={c} className={`${pill} ${PILL_COLORS[c] ?? PILL_COLORS.other}`}>
+            {c}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 text-[12px]">
+          <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${chip.dot}`} />
+          <span className={chip.urgent ? "font-semibold text-amber-700" : "text-[var(--muted)]"}>
+            {chip.text}
+          </span>
+        </span>
+        {o.description && (
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-label={expanded ? "Hide details" : "Show details"}
+            onClick={() => setExpanded((e) => !e)}
+            className="flex h-6 w-6 items-center justify-center rounded-full border border-stone-400/70 text-sm leading-none text-stone-600 transition-colors hover:border-stone-600 hover:text-stone-900"
+          >
+            {expanded ? "−" : "+"}
+          </button>
+        )}
+      </div>
     </li>
   );
 }
