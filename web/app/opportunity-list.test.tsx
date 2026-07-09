@@ -170,8 +170,8 @@ describe("category badges and filter", () => {
   });
 });
 
-describe("group precedence", () => {
-  it("closing-soon supersedes newly-added", () => {
+describe("group overlap", () => {
+  it("an item that is both fresh and closing-soon shows in both sections", () => {
     render(
       <OpportunityList
         opportunities={[
@@ -181,8 +181,12 @@ describe("group precedence", () => {
         nowISO={NOW_ISO}
       />,
     );
-    expect(screen.getByRole("heading", { name: /closing this week/i })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /newly added/i })).not.toBeInTheDocument();
-    expect(screen.getAllByText("Urgent Fresh")).toHaveLength(1);
+    const fresh = screen.getByRole("heading", { name: /newly added/i }).closest("section")!;
+    const closing = screen.getByRole("heading", { name: /closing this week/i }).closest("section")!;
+    expect(within(fresh).getByText("Urgent Fresh")).toBeInTheDocument();
+    expect(within(closing).getByText("Urgent Fresh")).toBeInTheDocument();
+    // and it doesn't leak into Open as well
+    expect(screen.queryByRole("heading", { name: /^open$/i })).not.toBeInTheDocument();
+    expect(screen.getAllByText("Urgent Fresh")).toHaveLength(2);
   });
 });
