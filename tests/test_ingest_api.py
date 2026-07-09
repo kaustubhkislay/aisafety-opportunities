@@ -103,3 +103,24 @@ def test_subscribe_rate_limited_per_ip(tmp_path, monkeypatch):
     for i in range(5):
         assert client.post("/subscribe", json={"email": f"u{i}@x.com"}).status_code == 200
     assert client.post("/subscribe", json={"email": "u6@x.com"}).status_code == 429
+
+
+def test_subscribe_rate_limit_uses_fly_client_ip(tmp_path, monkeypatch):
+    # Behind Fly's proxy every request shares request.client.host; the real
+    # client address arrives in Fly-Client-IP. Distinct header values must get
+    # distinct buckets, and the same value must share one.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda *a: None))
+    attacker = {"Fly-Client-IP": "203.0.113.9"}
+    for i in range(5):
+        resp = client.post("/subscribe", json={"email": f"a{i}@x.com"}, headers=attacker)
+        assert resp.status_code == 200
+    assert client.post("/subscribe", json={"email": "a6@x.com"}, headers=attacker).status_code == 429
+
+    # A different real client is unaffected even though the proxy IP is identical.
+    other = {"Fly-Client-IP": "198.51.100.7"}
+    assert client.post("/subscribe", json={"email": "b1@x.com"}, headers=other).status_code == 200

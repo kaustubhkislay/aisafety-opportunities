@@ -103,11 +103,23 @@ def ingested(server_id: str, _: None = Depends(require_secret)) -> dict:
 # fine — a single uvicorn serves this).
 _SUBSCRIBE_WINDOW = 60 * 60
 _SUBSCRIBE_LIMIT = 5
+_SUBSCRIBE_MAX_BUCKETS = 10_000
 _subscribe_hits: dict[str, deque] = defaultdict(deque)
+
+
+def _client_ip(request: Request) -> str:
+    # Behind Fly's proxy request.client.host is the proxy address shared by
+    # everyone; the real client arrives in Fly-Client-IP.
+    return request.headers.get("fly-client-ip") or (
+        request.client.host if request.client else "unknown"
+    )
 
 
 def _rate_limited(ip: str, now: float | None = None) -> bool:
     now = time.time() if now is None else now
+    if len(_subscribe_hits) > _SUBSCRIBE_MAX_BUCKETS:
+        for stale in [k for k, h in _subscribe_hits.items() if not h or now - h[-1] > _SUBSCRIBE_WINDOW]:
+            del _subscribe_hits[stale]
     hits = _subscribe_hits[ip]
     while hits and now - hits[0] > _SUBSCRIBE_WINDOW:
         hits.popleft()
@@ -129,8 +141,7 @@ def subscribe(body: SubscribeRequest, request: Request) -> dict:
     # inbox clicks the signed confirm link.
     if not is_valid_email(body.email):
         raise HTTPException(status_code=400, detail="invalid email")
-    ip = request.client.host if request.client else "unknown"
-    if _rate_limited(ip):
+    if _rate_limited(_client_ip(request)):
         raise HTTPException(status_code=429, detail="too many signups; try later")
     email = body.email.strip().lower()
     _subscribers.add_pending(email)
