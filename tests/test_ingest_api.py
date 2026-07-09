@@ -103,3 +103,71 @@ def test_subscribe_rate_limited_per_ip(tmp_path, monkeypatch):
     for i in range(5):
         assert client.post("/subscribe", json={"email": f"u{i}@x.com"}).status_code == 200
     assert client.post("/subscribe", json={"email": "u6@x.com"}).status_code == 429
+
+
+def test_subscribe_rate_limit_uses_fly_client_ip(tmp_path, monkeypatch):
+    # Behind Fly's proxy every request shares request.client.host; the real
+    # client address arrives in Fly-Client-IP. Distinct header values must get
+    # distinct buckets, and the same value must share one.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda *a: None))
+    attacker = {"Fly-Client-IP": "203.0.113.9"}
+    for i in range(5):
+        resp = client.post("/subscribe", json={"email": f"a{i}@x.com"}, headers=attacker)
+        assert resp.status_code == 200
+    assert client.post("/subscribe", json={"email": "a6@x.com"}, headers=attacker).status_code == 429
+
+    # A different real client is unaffected even though the proxy IP is identical.
+    other = {"Fly-Client-IP": "198.51.100.7"}
+    assert client.post("/subscribe", json={"email": "b1@x.com"}, headers=other).status_code == 200
+
+
+def test_subscribe_confirm_emails_capped_per_address(tmp_path, monkeypatch):
+    # Email-bombing guard: repeated signups for the same address may not keep
+    # sending confirmation emails, but must not leak that via the response.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    sent = []
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda e, *a: sent.append(e)))
+    ips = [{"Fly-Client-IP": f"203.0.113.{i}"} for i in range(6)]  # dodge the IP limit
+    for headers in ips:
+        resp = client.post("/subscribe", json={"email": "victim@x.com"}, headers=headers)
+        assert resp.status_code == 200
+        assert resp.json()["pending"] is True  # response identical whether or not we sent
+    assert sent.count("victim@x.com") == 3  # capped, not one-per-request
+
+
+def test_subscribe_without_email_provider_is_unavailable_not_unverified(tmp_path, monkeypatch):
+    # If the confirm-email path is unconfigured, signups must NOT silently
+    # activate (that would drop double-opt-in in production); the endpoint
+    # refuses instead.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.delenv("UNSUBSCRIBE_SECRET", raising=False)
+    monkeypatch.delenv("ALLOW_UNVERIFIED_SUBSCRIBE", raising=False)
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: None)
+    resp = client.post("/subscribe", json={"email": "new@x.com"})
+    assert resp.status_code == 503
+    assert app_module._subscribers.active_emails() == []
+
+
+def test_subscribe_dev_flag_allows_unverified_activation(tmp_path, monkeypatch):
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.delenv("UNSUBSCRIBE_SECRET", raising=False)
+    monkeypatch.setenv("ALLOW_UNVERIFIED_SUBSCRIBE", "1")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: None)
+    resp = client.post("/subscribe", json={"email": "dev@x.com"})
+    assert resp.status_code == 200
+    assert app_module._subscribers.active_emails() == ["dev@x.com"]

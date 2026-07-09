@@ -42,6 +42,29 @@ def test_token_rejected_when_tampered():
     assert verify_token(token + "x", "secret") is None
 
 
+def test_token_expires_after_max_age():
+    token = make_token("a@x.com", "secret", now=1_000_000)
+    within = 1_000_000 + 3 * 86400 - 1
+    beyond = 1_000_000 + 3 * 86400 + 1
+    assert verify_token(token, "secret", max_age=3 * 86400, now=within) == "a@x.com"
+    assert verify_token(token, "secret", max_age=3 * 86400, now=beyond) is None
+
+
+def test_token_without_max_age_does_not_expire():
+    token = make_token("a@x.com", "secret", now=1_000_000)
+    assert verify_token(token, "secret", now=1_000_000 + 10 * 365 * 86400) == "a@x.com"
+
+
+def test_token_timestamp_is_signed():
+    # Splicing a fresher timestamp into an old token must not extend its life.
+    old = make_token("a@x.com", "secret", now=1_000_000)
+    fresh = make_token("a@x.com", "secret", now=2_000_000)
+    email_part, _old_ts, sig_part = old.split(".")
+    _f_email, fresh_ts, _f_sig = fresh.split(".")
+    spliced = f"{email_part}.{fresh_ts}.{sig_part}"
+    assert verify_token(spliced, "secret", max_age=86400, now=2_000_000) is None
+
+
 # --- digest body -----------------------------------------------------------
 
 def test_build_digest_lists_items_and_unsub_link():
@@ -95,9 +118,14 @@ def test_run_digest_sends_each_subscriber_with_their_token(tmp_path):
 
     assert count == 2
     assert {email for email, _ in sent} == {"a@x.com", "b@x.com"}
-    # each email carries that subscriber's own unsubscribe token
+    # each email carries that subscriber's own unsubscribe token (extract it
+    # rather than re-minting, so a second-boundary tick can't flake the test)
+    import re as _re
+
     for email, html in sent:
-        assert make_token(email, "s") in html
+        match = _re.search(r"token=([A-Za-z0-9_\-]+\.\d+\.[A-Za-z0-9_\-]+)", html)
+        assert match, f"no unsubscribe token in email to {email}"
+        assert verify_token(match.group(1), "s") == email
 
 
 def test_run_digest_excludes_expired_opportunities(tmp_path):

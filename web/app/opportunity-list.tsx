@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Opportunity, OppType } from "@/lib/types";
 import { filterAndSort } from "@/lib/filter";
-import { deriveStatus } from "@/lib/status";
+import { deriveStatus, isFresh } from "@/lib/status";
 
 const TYPES: OppType[] = [
   "job", "internship", "fellowship", "grant", "event", "course", "reading-group", "other",
@@ -172,7 +172,6 @@ export function OpportunityList({
   );
 
   const groups = useMemo(() => {
-    const today = nowISO.slice(0, 10);
     const fresh: Opportunity[] = [];
     const closing: Opportunity[] = [];
     const open: Opportunity[] = [];
@@ -182,7 +181,7 @@ export function OpportunityList({
       const status = deriveStatus(o.deadline, now);
       if (status === "closing-soon") closing.push(o);
       else if (status === "expired") past.push(o);
-      else if (o.dateSeen === today) fresh.push(o);
+      else if (isFresh(o.dateSeen, now)) fresh.push(o);
       else open.push(o);
     }
     return { fresh, closing, open, past };

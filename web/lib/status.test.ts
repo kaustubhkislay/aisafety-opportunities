@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveStatus } from "@/lib/status";
+import { deriveStatus, isFresh } from "@/lib/status";
 
 const NOW = new Date("2026-06-26T12:00:00Z");
 
@@ -21,5 +21,21 @@ describe("deriveStatus", () => {
   });
   it("invalid deadline is active", () => {
     expect(deriveStatus("not-a-date", NOW)).toBe("active");
+  });
+});
+
+describe("isFresh", () => {
+  it("first seen today is fresh", () => {
+    expect(isFresh("2026-06-26", NOW)).toBe(true);
+  });
+  it("first seen yesterday is fresh (rolling ~48h window, no UTC-midnight cliff)", () => {
+    expect(isFresh("2026-06-25", NOW)).toBe(true);
+  });
+  it("first seen two days ago is not fresh", () => {
+    expect(isFresh("2026-06-24", NOW)).toBe(false);
+  });
+  it("missing or invalid dateSeen is not fresh", () => {
+    expect(isFresh(null, NOW)).toBe(false);
+    expect(isFresh("not-a-date", NOW)).toBe(false);
   });
 });

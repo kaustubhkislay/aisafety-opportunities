@@ -12,6 +12,7 @@ import hmac
 import logging
 import os
 import re
+import time
 from datetime import date, datetime, timezone
 from html import escape
 
@@ -38,24 +39,36 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + pad)
 
 
-def make_token(email: str, secret: str, purpose: str = "unsubscribe") -> str:
+def make_token(
+    email: str, secret: str, purpose: str = "unsubscribe", now: float | None = None
+) -> str:
     email = email.strip().lower()
-    payload = f"{purpose}:{email}".encode()
+    ts = int(time.time() if now is None else now)
+    payload = f"{purpose}:{ts}:{email}".encode()
     sig = hmac.new(secret.encode(), payload, hashlib.sha256).digest()
-    return f"{_b64(email.encode())}.{_b64(sig)}"
+    return f"{_b64(email.encode())}.{ts}.{_b64(sig)}"
 
 
-def verify_token(token: str, secret: str, purpose: str = "unsubscribe") -> str | None:
+def verify_token(
+    token: str,
+    secret: str,
+    purpose: str = "unsubscribe",
+    max_age: int | None = None,
+    now: float | None = None,
+) -> str | None:
     try:
-        email_part, sig_part = token.split(".", 1)
+        email_part, ts_part, sig_part = token.split(".", 2)
         email = _unb64(email_part).decode()
-        payload = f"{purpose}:{email}".encode()
+        ts = int(ts_part)
+        payload = f"{purpose}:{ts}:{email}".encode()
         expected = hmac.new(secret.encode(), payload, hashlib.sha256).digest()
-        if hmac.compare_digest(_unb64(sig_part), expected):
-            return email
+        if not hmac.compare_digest(_unb64(sig_part), expected):
+            return None
+        if max_age is not None and (time.time() if now is None else now) - ts > max_age:
+            return None
+        return email
     except Exception:  # noqa: BLE001 - any malformed/garbage token is simply invalid
         return None
-    return None
 
 
 # --- digest body -----------------------------------------------------------
