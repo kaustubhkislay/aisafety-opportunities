@@ -32,7 +32,6 @@ export default async function Home() {
               <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer" className={toc}>
                 Feedback
               </a>
-              <a href="/feed.xml" className={toc}>RSS</a>
             </nav>
           </div>
           <div className="flex flex-wrap items-center gap-2">

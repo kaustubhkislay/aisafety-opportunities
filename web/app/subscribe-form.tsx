@@ -33,7 +33,10 @@ export function SubscribeForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-center justify-end gap-2">
+    // display:contents — the input, button, and any error join the header's
+    // flex row directly, so on mobile the input takes a full row and the
+    // digest + Add community buttons wrap onto one tidy row together.
+    <form onSubmit={onSubmit} className="contents">
       <label htmlFor="digest-email" className="sr-only">Email for the digest</label>
       <input
         id="digest-email"
@@ -42,7 +45,7 @@ export function SubscribeForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="you@example.org"
-        className="w-44 rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]"
+        className="w-full rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] sm:w-44"
       />
       <button
         type="submit"
@@ -52,7 +55,7 @@ export function SubscribeForm() {
         {status === "loading" ? "Subscribing…" : "Get the daily digest"}
       </button>
       {status === "error" && (
-        <p className="w-full text-right text-sm text-red-700">Something went wrong. Try again.</p>
+        <p className="w-full text-sm text-red-700 sm:text-right">Something went wrong. Try again.</p>
       )}
     </form>
   );
