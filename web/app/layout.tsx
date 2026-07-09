@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,10 +20,29 @@ const bricolage = Bricolage_Grotesque({
   weight: ["500", "600", "700"],
 });
 
+const description =
+  "A public, auto-updating board of AI-safety jobs, fellowships, grants, events, and courses.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: "AI Safety Opportunities",
-  description:
-    "A public, auto-updating board of AI-safety jobs, fellowships, grants, events, and courses.",
+  description,
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": "/feed.xml" },
+  },
+  openGraph: {
+    title: "AI Safety Opportunities",
+    description,
+    siteName: "AI Safety Opportunities",
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: "AI Safety Opportunities",
+    description,
+  },
 };
 
 export default function RootLayout({
