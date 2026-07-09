@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms — AI Safety Opportunities",
   description: "Terms of use for this site.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

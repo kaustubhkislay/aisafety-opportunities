@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "ToC — AI Safety Opportunities",
   description: "Why this board exists and how it improves opportunity distribution in AI safety.",
+  alternates: { canonical: "/theory-of-change" },
 };
 
 function H({ children }: { children: React.ReactNode }) {
