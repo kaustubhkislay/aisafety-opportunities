@@ -255,7 +255,7 @@ function Section({
   return (
     <section className="mb-8 scroll-mt-20" id={id}>
       <h2 className="font-display mb-3 text-lg font-semibold">{title}</h2>
-      <ul className="grid grid-cols-2 items-start gap-4 pt-1.5 sm:gap-5">
+      <ul className="grid grid-cols-2 items-start gap-4 pt-1.5 sm:gap-5 lg:grid-cols-3">
         {items.map((o) => (
           <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
         ))}
@@ -275,7 +275,7 @@ export function OpportunityList({
   const [text, setText] = useState("");
   const [types, setTypes] = useState<string[]>([]);
   const [locations, setLocations] = useState<string[]>([]);
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showPast, setShowPast] = useState(false);
 
@@ -288,11 +288,11 @@ export function OpportunityList({
     () =>
       filterAndSort(
         opportunities,
-        { text, types, locations, categories: category ? [category] : [], remoteOnly, showPast },
+        { text, types, locations, categories, remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, types, locations, category, remoteOnly, showPast, nowISO],
+    [opportunities, text, types, locations, categories, remoteOnly, showPast, nowISO],
   );
 
   const groups = useMemo(() => {
@@ -312,7 +312,7 @@ export function OpportunityList({
 
   // Controls dress like small paper scraps to match the card restyle:
   // white-adjacent, thin border, soft shadow, square-ish corners.
-  const control = "rounded-sm border border-stone-300/80 bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] lg:w-full";
+  const control = "rounded-sm border border-stone-300/80 bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)]";
   // Native selects size to their longest <option> and never shrink, so one
   // long location value can force the page wider than a phone viewport.
   // The cap must be a fixed length: percentage max-widths are ignored
@@ -320,14 +320,14 @@ export function OpportunityList({
   const select = `${control} max-w-56`;
 
   return (
-    <div className="lg:flex lg:items-start lg:gap-8">
-      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm lg:top-4 lg:order-2 lg:mx-0 lg:mt-12 lg:w-52 lg:shrink-0 lg:flex-col lg:items-stretch lg:rounded lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+    <div>
+      <div className="sticky top-0 z-10 -mx-4 mb-6 flex flex-wrap items-center gap-2 bg-[var(--board)]/95 px-4 py-3 backdrop-blur-sm">
         <input
           type="search"
           placeholder="Search the board…"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1 lg:w-full`}
+          className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1`}
         />
         <MultiSelect
           label="All types"
@@ -337,17 +337,14 @@ export function OpportunityList({
           onChange={setTypes}
           className={select}
         />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
+        <MultiSelect
+          label="All categories"
+          noun="categories"
+          options={["tech", "gov", "other"]}
+          selected={categories}
+          onChange={setCategories}
           className={select}
-          aria-label="Filter by category"
-        >
-          <option value="">All categories</option>
-          <option value="tech">tech</option>
-          <option value="gov">gov</option>
-          <option value="other">other</option>
-        </select>
+        />
         {locationOptions.length > 0 && (
           <MultiSelect
             label="All locations"
@@ -368,7 +365,7 @@ export function OpportunityList({
         </label>
       </div>
 
-      <div className="lg:order-1 lg:min-w-0 lg:flex-1">
+      <div>
         <Section title="Newly added" items={groups.fresh} now={now} id="new" />
         <Section title="Open" items={groups.open} now={now} id="open" />
         {showPast && <Section title="Past" items={groups.past} now={now} id="past" />}
