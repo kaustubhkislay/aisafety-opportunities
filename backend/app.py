@@ -185,12 +185,20 @@ def subscribe(body: SubscribeRequest, request: Request) -> dict:
     return {"pending": True, "email": email}
 
 
+_CONFIRM_TOKEN_MAX_AGE = 3 * 86400  # confirm links go stale quickly
+_UNSUBSCRIBE_TOKEN_MAX_AGE = 90 * 86400  # old digest footers keep working
+
+
 @app.get("/subscribe/confirm", response_class=HTMLResponse)
 def subscribe_confirm(token: str) -> HTMLResponse:
     secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
-    email = verify_token(token, secret, purpose="confirm") if secret else None
+    email = (
+        verify_token(token, secret, purpose="confirm", max_age=_CONFIRM_TOKEN_MAX_AGE)
+        if secret
+        else None
+    )
     if email is None:
-        return HTMLResponse("<p>Invalid confirmation link.</p>", status_code=400)
+        return HTMLResponse("<p>Invalid or expired confirmation link.</p>", status_code=400)
     _subscribers.activate(email)
     return HTMLResponse(f"<p>{email} is subscribed to the daily digest.</p>")
 
@@ -198,7 +206,7 @@ def subscribe_confirm(token: str) -> HTMLResponse:
 @app.get("/unsubscribe", response_class=HTMLResponse)
 def unsubscribe(token: str) -> HTMLResponse:
     secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
-    email = verify_token(token, secret) if secret else None
+    email = verify_token(token, secret, max_age=_UNSUBSCRIBE_TOKEN_MAX_AGE) if secret else None
     if email is None:
         return HTMLResponse("<p>Invalid or expired unsubscribe link.</p>", status_code=400)
     _subscribers.remove(email)
