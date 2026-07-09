@@ -213,7 +213,7 @@ describe("filter controls", () => {
 });
 
 describe("category badges and filter", () => {
-  it("renders filled single-letter category chips (T, G, O)", () => {
+  it("renders hollow single-letter category chips (T, G, O)", () => {
     render(
       <OpportunityList
         opportunities={[opp({ title: "X", categories: ["tech", "gov", "other"], dedupKey: "x" })]}
@@ -223,11 +223,11 @@ describe("category badges and filter", () => {
     const card = screen.getAllByRole("listitem").find((li) => within(li).queryByText("X"))!;
     const chip = (name: string) => within(card).getByTitle(name);
     expect(chip("tech")).toHaveTextContent(/^T$/);
-    expect(chip("tech")).toHaveClass("bg-teal-600");
+    expect(chip("tech")).toHaveClass("border", "border-teal-700", "text-teal-700");
     expect(chip("gov")).toHaveTextContent(/^G$/);
-    expect(chip("gov")).toHaveClass("bg-indigo-600");
+    expect(chip("gov")).toHaveClass("border", "border-indigo-700", "text-indigo-700");
     expect(chip("other")).toHaveTextContent(/^O$/);
-    expect(chip("other")).toHaveClass("bg-stone-400");
+    expect(chip("other")).toHaveClass("border", "border-stone-400", "text-stone-500");
   });
 
   it("filters by category", async () => {
