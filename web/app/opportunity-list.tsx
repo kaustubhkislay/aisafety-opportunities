@@ -116,21 +116,17 @@ function Section({
   title,
   items,
   now,
-  accent,
   id,
 }: {
   title: string;
   items: Opportunity[];
   now: Date;
-  accent?: boolean;
   id?: string;
 }) {
   if (items.length === 0) return null;
   return (
     <section className="mb-8 scroll-mt-20" id={id}>
-      <h2 className={`font-display mb-3 text-lg font-semibold ${accent ? "text-amber-700" : ""}`}>
-        {title}
-      </h2>
+      <h2 className="font-display mb-3 text-lg font-semibold">{title}</h2>
       <ul className="grid grid-cols-2 gap-4 pt-1.5 sm:gap-5">
         {items.map((o) => (
           <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
@@ -173,23 +169,16 @@ export function OpportunityList({
 
   const groups = useMemo(() => {
     const fresh: Opportunity[] = [];
-    const closing: Opportunity[] = [];
     const open: Opportunity[] = [];
     const past: Opportunity[] = [];
     for (const o of visible) {
-      // Newly-added and closing-soon overlap: a fresh item with a near
-      // deadline shows in both sections. Open holds whatever is in neither.
-      const status = deriveStatus(o.deadline, now);
-      if (status === "expired") {
-        past.push(o);
-        continue;
-      }
-      const isNew = isFresh(o.dateSeen, now);
-      if (isNew) fresh.push(o);
-      if (status === "closing-soon") closing.push(o);
-      else if (!isNew) open.push(o);
+      // Closing-soon items stay in their section (deadline sort floats them
+      // to the top of Open) and keep the urgent amber styling on the card.
+      if (deriveStatus(o.deadline, now) === "expired") past.push(o);
+      else if (isFresh(o.dateSeen, now)) fresh.push(o);
+      else open.push(o);
     }
-    return { fresh, closing, open, past };
+    return { fresh, open, past };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
@@ -247,7 +236,6 @@ export function OpportunityList({
 
       <div className="lg:order-1 lg:min-w-0 lg:flex-1">
         <Section title="Newly added" items={groups.fresh} now={now} id="new" />
-        <Section title="Closing this week" items={groups.closing} now={now} accent id="closing" />
         <Section title="Open" items={groups.open} now={now} id="open" />
         {showPast && <Section title="Past" items={groups.past} now={now} id="past" />}
         {visible.length === 0 && <p className="text-[var(--muted)]">Nothing on the board matches.</p>}

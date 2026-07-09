@@ -69,7 +69,7 @@ describe("location filter and sort", () => {
 });
 
 describe("board grouping", () => {
-  it("groups cards under Closing this week and Open headings", () => {
+  it("puts closing-soon items in Open (no separate section) with the urgent chip", () => {
     render(
       <OpportunityList
         opportunities={[
@@ -79,8 +79,12 @@ describe("board grouping", () => {
         nowISO={NOW_ISO}
       />,
     );
-    expect(screen.getByRole("heading", { name: /closing this week/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^open$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /closing this week/i })).not.toBeInTheDocument();
+    const open = screen.getByRole("heading", { name: /^open$/i }).closest("section")!;
+    expect(within(open).getByText("Urgent")).toBeInTheDocument();
+    expect(within(open).getByText("Relaxed")).toBeInTheDocument();
+    // deadline-soon styling survives: relative chip in amber
+    expect(within(open).getByText(/2 days left/)).toHaveClass("text-amber-700");
   });
 
   it("shows a Past section only when showPast is on", async () => {
@@ -171,7 +175,7 @@ describe("category badges and filter", () => {
 });
 
 describe("group overlap", () => {
-  it("an item that is both fresh and closing-soon shows in both sections", () => {
+  it("a fresh closing-soon item sits in Newly added, keeping the urgent styling", () => {
     render(
       <OpportunityList
         opportunities={[
@@ -182,11 +186,8 @@ describe("group overlap", () => {
       />,
     );
     const fresh = screen.getByRole("heading", { name: /newly added/i }).closest("section")!;
-    const closing = screen.getByRole("heading", { name: /closing this week/i }).closest("section")!;
     expect(within(fresh).getByText("Urgent Fresh")).toBeInTheDocument();
-    expect(within(closing).getByText("Urgent Fresh")).toBeInTheDocument();
-    // and it doesn't leak into Open as well
-    expect(screen.queryByRole("heading", { name: /^open$/i })).not.toBeInTheDocument();
-    expect(screen.getAllByText("Urgent Fresh")).toHaveLength(2);
+    expect(within(fresh).getByText(/2 days left/)).toHaveClass("text-amber-700");
+    expect(screen.getAllByText("Urgent Fresh")).toHaveLength(1);
   });
 });
