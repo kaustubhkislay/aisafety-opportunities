@@ -255,7 +255,7 @@ function Section({
   return (
     <section className="mb-8 scroll-mt-20" id={id}>
       <h2 className="font-display mb-3 text-lg font-semibold">{title}</h2>
-      <ul className="grid grid-cols-2 gap-4 pt-1.5 sm:gap-5">
+      <ul className="grid grid-cols-2 items-start gap-4 pt-1.5 sm:gap-5">
         {items.map((o) => (
           <Card key={o.dedupKey || `${o.title}-${o.link}`} o={o} now={now} />
         ))}
