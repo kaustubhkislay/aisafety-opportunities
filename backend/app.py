@@ -134,6 +134,24 @@ def _confirm_sender():
     return resend_sender_from_env(os.environ)
 
 
+# Email-bombing guard: at most N confirmation emails per address per window
+# (>1 so a legitimate retry after a spam-foldered first email still works).
+_CONFIRM_WINDOW = 24 * 60 * 60
+_CONFIRM_LIMIT = 3
+_confirm_sends: dict[str, deque] = defaultdict(deque)
+
+
+def _confirm_send_allowed(email: str, now: float | None = None) -> bool:
+    now = time.time() if now is None else now
+    sends = _confirm_sends[email]
+    while sends and now - sends[0] > _CONFIRM_WINDOW:
+        sends.popleft()
+    if len(sends) >= _CONFIRM_LIMIT:
+        return False
+    sends.append(now)
+    return True
+
+
 @app.post("/subscribe")
 def subscribe(body: SubscribeRequest, request: Request) -> dict:
     # Public endpoint (the website's subscribe form posts here). Double-opt-in:
@@ -148,6 +166,10 @@ def subscribe(body: SubscribeRequest, request: Request) -> dict:
     sender = _confirm_sender()
     secret = os.environ.get("UNSUBSCRIBE_SECRET", "")
     if sender is not None and secret:
+        if not _confirm_send_allowed(email):
+            # Same response as the sent case so the endpoint doesn't leak
+            # subscription state or that a cap exists.
+            return {"pending": True, "email": email}
         base = os.environ.get("BACKEND_URL", "http://localhost:3000").rstrip("/")
         link = f"{base}/subscribe/confirm?token={make_token(email, secret, purpose='confirm')}"
         sender(

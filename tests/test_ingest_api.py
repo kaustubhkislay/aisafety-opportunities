@@ -124,3 +124,21 @@ def test_subscribe_rate_limit_uses_fly_client_ip(tmp_path, monkeypatch):
     # A different real client is unaffected even though the proxy IP is identical.
     other = {"Fly-Client-IP": "198.51.100.7"}
     assert client.post("/subscribe", json={"email": "b1@x.com"}, headers=other).status_code == 200
+
+
+def test_subscribe_confirm_emails_capped_per_address(tmp_path, monkeypatch):
+    # Email-bombing guard: repeated signups for the same address may not keep
+    # sending confirmation emails, but must not leak that via the response.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.setenv("UNSUBSCRIBE_SECRET", "sek")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    sent = []
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: (lambda e, *a: sent.append(e)))
+    ips = [{"Fly-Client-IP": f"203.0.113.{i}"} for i in range(6)]  # dodge the IP limit
+    for headers in ips:
+        resp = client.post("/subscribe", json={"email": "victim@x.com"}, headers=headers)
+        assert resp.status_code == 200
+        assert resp.json()["pending"] is True  # response identical whether or not we sent
+    assert sent.count("victim@x.com") == 3  # capped, not one-per-request
