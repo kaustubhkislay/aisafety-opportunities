@@ -144,6 +144,27 @@ describe("newly added", () => {
   });
 });
 
+describe("filter controls", () => {
+  it("caps select width so a long location option cannot widen the page on mobile", () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({
+            title: "Long Loc",
+            location: "Remote (potential coworking in London, Tel Aviv, SF, tentatively DC)",
+            dedupKey: "ll",
+          }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    // Fixed-length cap required: percentage max-widths are ignored during
+    // intrinsic sizing, so max-w-full would not prevent the overflow.
+    expect(screen.getByLabelText("Filter by location")).toHaveClass("max-w-56");
+    expect(screen.getByLabelText("Filter by type")).toHaveClass("max-w-56");
+  });
+});
+
 describe("category badges and filter", () => {
   it("renders category badges on cards", () => {
     render(

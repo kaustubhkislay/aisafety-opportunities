@@ -183,6 +183,11 @@ export function OpportunityList({
   }, [visible, nowISO]);
 
   const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] lg:w-full";
+  // Native selects size to their longest <option> and never shrink, so one
+  // long location value can force the page wider than a phone viewport.
+  // The cap must be a fixed length: percentage max-widths are ignored
+  // during intrinsic sizing, so max-w-full does not break the overflow.
+  const select = `${control} max-w-56`;
 
   return (
     <div className="lg:flex lg:items-start lg:gap-8">
@@ -194,7 +199,7 @@ export function OpportunityList({
           onChange={(e) => setText(e.target.value)}
           className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1 lg:w-full`}
         />
-        <select value={type} onChange={(e) => setType(e.target.value)} className={control} aria-label="Filter by type">
+        <select value={type} onChange={(e) => setType(e.target.value)} className={select} aria-label="Filter by type">
           <option value="">All types</option>
           {TYPES.map((t) => (
             <option key={t} value={t}>{t}</option>
@@ -203,7 +208,7 @@ export function OpportunityList({
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className={control}
+          className={select}
           aria-label="Filter by category"
         >
           <option value="">All categories</option>
@@ -215,7 +220,7 @@ export function OpportunityList({
           <select
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            className={control}
+            className={select}
             aria-label="Filter by location"
           >
             <option value="">All locations</option>
