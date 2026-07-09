@@ -9,11 +9,12 @@ const TYPES: OppType[] = [
   "job", "internship", "fellowship", "grant", "event", "course", "reading-group", "other",
 ];
 
-// Category tags: filled single-letter chips (T = tech, G = gov, O = other).
+// Category tags: hollow single-letter chips (T = tech, G = gov, O = other) —
+// outlined in the category color so they don't visually compete with the text.
 const CATEGORY_CHIP: Record<string, string> = {
-  tech: "bg-teal-600",
-  gov: "bg-indigo-600",
-  other: "bg-stone-400",
+  tech: "border-teal-700 text-teal-700",
+  gov: "border-indigo-700 text-indigo-700",
+  other: "border-stone-400 text-stone-500",
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -81,7 +82,7 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
             <span
               key={c}
               title={c}
-              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold leading-none tracking-normal text-white ${CATEGORY_CHIP[c] ?? CATEGORY_CHIP.other}`}
+              className={`rounded border px-1 py-0.5 text-[10px] font-medium leading-none tracking-normal ${CATEGORY_CHIP[c] ?? CATEGORY_CHIP.other}`}
             >
               {c.charAt(0).toUpperCase()}
             </span>
