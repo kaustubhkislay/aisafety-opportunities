@@ -39,6 +39,17 @@ it("matches Carnegie's actual guild name (no 'Mellon')", () => {
   );
 });
 
+it("matches UChicago's Existential Risk Laboratory under its workspace-name variants", () => {
+  expect(logoFor("Existential Risk Laboratory")).toBe(
+    "/logos/existential-risk-laboratory.webp",
+  );
+  expect(logoFor("The Existential Risk Laboratory")).toBe(
+    "/logos/existential-risk-laboratory.webp",
+  );
+  expect(logoFor("XLab")).toBe("/logos/existential-risk-laboratory.webp");
+  expect(logoFor("UChicago AI Safety")).toBe("/logos/existential-risk-laboratory.webp");
+});
+
 it("matches Georgia Tech's guild name", () => {
   expect(logoFor("AI Safety Initiative at Georgia Tech")).toBe(
     "/logos/ai-safety-initiative-at-georgia-tech.webp",
