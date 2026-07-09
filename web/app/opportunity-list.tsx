@@ -177,12 +177,17 @@ export function OpportunityList({
     const open: Opportunity[] = [];
     const past: Opportunity[] = [];
     for (const o of visible) {
-      // Precedence: closing-soon > newly-added > open.
+      // Newly-added and closing-soon overlap: a fresh item with a near
+      // deadline shows in both sections. Open holds whatever is in neither.
       const status = deriveStatus(o.deadline, now);
+      if (status === "expired") {
+        past.push(o);
+        continue;
+      }
+      const isNew = isFresh(o.dateSeen, now);
+      if (isNew) fresh.push(o);
       if (status === "closing-soon") closing.push(o);
-      else if (status === "expired") past.push(o);
-      else if (isFresh(o.dateSeen, now)) fresh.push(o);
-      else open.push(o);
+      else if (!isNew) open.push(o);
     }
     return { fresh, closing, open, past };
     // eslint-disable-next-line react-hooks/exhaustive-deps
