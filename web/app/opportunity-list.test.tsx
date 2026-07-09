@@ -208,7 +208,7 @@ describe("filter controls", () => {
     // intrinsic sizing, so max-w-full would not prevent the overflow.
     expect(screen.getByLabelText("All locations")).toHaveClass("max-w-56");
     expect(screen.getByLabelText("All types")).toHaveClass("max-w-56");
-    expect(screen.getByLabelText("Filter by category")).toHaveClass("max-w-56");
+    expect(screen.getByLabelText("All categories")).toHaveClass("max-w-56");
   });
 });
 
@@ -228,18 +228,27 @@ describe("category badges and filter", () => {
     expect(within(card).getByText("gov")).toHaveClass("border", "text-indigo-700");
   });
 
-  it("filters by category", async () => {
+  it("filters by category via checkboxes with multiple selections", async () => {
     render(
       <OpportunityList
         opportunities={[
           opp({ title: "Techy", categories: ["tech"], dedupKey: "a" }),
           opp({ title: "Policy", categories: ["gov"], dedupKey: "b" }),
+          opp({ title: "Misc", categories: ["other"], dedupKey: "c" }),
         ]}
         nowISO={NOW_ISO}
       />,
     );
-    await userEvent.selectOptions(screen.getByLabelText("Filter by category"), "gov");
+    // "gov"/"other" also exist in the types popover, so scope to categories
+    const catPopover = screen.getByLabelText("All categories").closest("details")!;
+    await userEvent.click(within(catPopover).getByRole("checkbox", { name: "gov" }));
     expect(screen.getByText("Policy")).toBeInTheDocument();
+    expect(screen.queryByText("Techy")).not.toBeInTheDocument();
+    expect(screen.queryByText("Misc")).not.toBeInTheDocument();
+
+    await userEvent.click(within(catPopover).getByRole("checkbox", { name: "other" }));
+    expect(screen.getByText("Policy")).toBeInTheDocument();
+    expect(screen.getByText("Misc")).toBeInTheDocument();
     expect(screen.queryByText("Techy")).not.toBeInTheDocument();
   });
 });
