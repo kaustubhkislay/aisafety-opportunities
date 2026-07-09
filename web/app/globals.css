@@ -66,9 +66,10 @@ body {
   box-shadow: 0 1px 4px rgba(28, 25, 23, 0.16);
 }
 .paper-kraft {
-  background-color: #d3b183;
-  background-image: radial-gradient(ellipse at 30% 20%, rgba(255, 244, 220, 0.25), transparent 65%);
-  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.18);
+  /* parchment: white-adjacent with a faint fiber sheen */
+  background-color: #f5efe0;
+  background-image: radial-gradient(ellipse at 30% 20%, rgba(255, 252, 244, 0.5), transparent 65%);
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.16);
 }
 .paper-lined {
   background-color: #fffdf4;
@@ -94,12 +95,13 @@ body {
   box-shadow: 0 1px 4px rgba(28, 25, 23, 0.18);
 }
 .paper-sticky-green {
-  background-color: #c4e6b8;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.25), transparent 30%, rgba(90, 120, 70, 0.12));
+  /* whisper tints: white-adjacent, just enough hue to vary the wall */
+  background-color: #f3f7ef;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.35), transparent 30%, rgba(90, 120, 70, 0.05));
 }
 .paper-sticky-rose {
-  background-color: #f0a196;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.25), transparent 30%, rgba(140, 60, 50, 0.12));
+  background-color: #faf2ee;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.35), transparent 30%, rgba(140, 60, 50, 0.05));
 }
 /* folded sticky-note corner */
 .paper-sticky-green::after,
