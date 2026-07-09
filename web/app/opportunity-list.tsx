@@ -61,11 +61,11 @@ export function cardLook(key: string): { paper: number; fixture: number; tilt: n
 
 const PAPERS = [
   "paper-graph",
-  "paper-kraft",
+  "paper-dotgrid",
   "paper-lined",
   "paper-torn",
-  "paper-sticky-green",
-  "paper-sticky-rose",
+  "paper-note",
+  "paper-canvas",
 ];
 const TILTS = ["tilt-1", "tilt-2", "tilt-3", "tilt-4"];
 
