@@ -125,6 +125,19 @@ describe("newly added", () => {
     expect(screen.getAllByText("Fresh Today")).toHaveLength(1);
     expect(screen.getByText("Older")).toBeInTheDocument();
   });
+
+  it("keeps yesterday's items in Newly added (survives the UTC-midnight rollover)", () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "Fresh Yesterday", deadline: "2026-09-01", dateSeen: "2026-06-25", dedupKey: "y" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    const fresh = screen.getByRole("heading", { name: /newly added/i }).closest("section")!;
+    expect(within(fresh).getByText("Fresh Yesterday")).toBeInTheDocument();
+  });
 });
 
 describe("category badges and filter", () => {
