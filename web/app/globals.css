@@ -53,6 +53,79 @@ body {
     inset 0 1px 4px rgba(28, 25, 23, 0.18);
 }
 
+/* Card paper styles — assigned per card by a hash of its dedup key (see
+   cardLook in opportunity-list.tsx). Each defines its own surface + shadow;
+   the torn style must use drop-shadow because box-shadow gets clipped away
+   by its clip-path. */
+.paper-graph {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(rgba(96, 165, 250, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 165, 250, 0.16) 1px, transparent 1px);
+  background-size: 18px 18px;
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.16);
+}
+.paper-kraft {
+  background-color: #d3b183;
+  background-image: radial-gradient(ellipse at 30% 20%, rgba(255, 244, 220, 0.25), transparent 65%);
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.18);
+}
+.paper-lined {
+  background-color: #fffdf4;
+  background-image:
+    linear-gradient(90deg, transparent 26px, rgba(220, 38, 38, 0.3) 26px, rgba(220, 38, 38, 0.3) 27px, transparent 27px),
+    linear-gradient(transparent 23px, rgba(59, 130, 246, 0.18) 23px, rgba(59, 130, 246, 0.18) 24px, transparent 24px);
+  background-size: 100% 100%, 100% 24px;
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.16);
+}
+.paper-torn {
+  background-color: #faf6ec;
+  clip-path: polygon(
+    1% 3%, 6% 0%, 13% 2%, 22% 0%, 30% 3%, 41% 1%, 52% 3%, 61% 0%, 72% 2%,
+    81% 0%, 91% 3%, 99% 1%, 100% 12%, 98% 25%, 100% 38%, 98% 52%, 100% 65%,
+    98% 79%, 100% 91%, 97% 98%, 88% 100%, 77% 97%, 66% 100%, 55% 98%,
+    44% 100%, 33% 97%, 22% 100%, 12% 98%, 3% 100%, 0% 93%, 2% 80%, 0% 66%,
+    2% 52%, 0% 39%, 2% 26%, 0% 13%
+  );
+  filter: drop-shadow(0 1px 3px rgba(28, 25, 23, 0.22));
+}
+.paper-sticky-green,
+.paper-sticky-rose {
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.18);
+}
+.paper-sticky-green {
+  background-color: #c4e6b8;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.25), transparent 30%, rgba(90, 120, 70, 0.12));
+}
+.paper-sticky-rose {
+  background-color: #f0a196;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.25), transparent 30%, rgba(140, 60, 50, 0.12));
+}
+/* folded sticky-note corner */
+.paper-sticky-green::after,
+.paper-sticky-rose::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border-style: solid;
+  border-width: 0 0 14px 14px;
+}
+.paper-sticky-green::after {
+  border-color: transparent transparent var(--board) transparent;
+  filter: drop-shadow(-1px -1px 1px rgba(60, 90, 50, 0.35));
+}
+.paper-sticky-rose::after {
+  border-color: transparent transparent var(--board) transparent;
+  filter: drop-shadow(-1px -1px 1px rgba(120, 50, 40, 0.35));
+}
+
+/* Slight per-card tilt, also hash-assigned. */
+.tilt-1 { transform: rotate(-1.2deg); }
+.tilt-2 { transform: rotate(-0.4deg); }
+.tilt-3 { transform: rotate(0.5deg); }
+.tilt-4 { transform: rotate(1.3deg); }
+
 .font-display {
   font-family: var(--font-bricolage), "rl-limo", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
