@@ -54,8 +54,10 @@ def _api(tmp_path, monkeypatch):
 
 
 def test_subscribe_endpoint_stores_valid_email(tmp_path, monkeypatch):
-    # Double-opt-in: without a configured sender (dev), the address activates
-    # directly; with one, it stays pending until the confirm link is clicked.
+    # Double-opt-in: without a configured sender, direct activation requires
+    # the explicit dev flag; with a sender, the address stays pending until
+    # the confirm link is clicked.
+    monkeypatch.setenv("ALLOW_UNVERIFIED_SUBSCRIBE", "1")
     mod, client = _api(tmp_path, monkeypatch)
     resp = client.post("/subscribe", json={"email": "A@x.com"})
     assert resp.status_code == 200

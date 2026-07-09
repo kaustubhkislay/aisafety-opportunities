@@ -142,3 +142,32 @@ def test_subscribe_confirm_emails_capped_per_address(tmp_path, monkeypatch):
         assert resp.status_code == 200
         assert resp.json()["pending"] is True  # response identical whether or not we sent
     assert sent.count("victim@x.com") == 3  # capped, not one-per-request
+
+
+def test_subscribe_without_email_provider_is_unavailable_not_unverified(tmp_path, monkeypatch):
+    # If the confirm-email path is unconfigured, signups must NOT silently
+    # activate (that would drop double-opt-in in production); the endpoint
+    # refuses instead.
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.delenv("UNSUBSCRIBE_SECRET", raising=False)
+    monkeypatch.delenv("ALLOW_UNVERIFIED_SUBSCRIBE", raising=False)
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: None)
+    resp = client.post("/subscribe", json={"email": "new@x.com"})
+    assert resp.status_code == 503
+    assert app_module._subscribers.active_emails() == []
+
+
+def test_subscribe_dev_flag_allows_unverified_activation(tmp_path, monkeypatch):
+    monkeypatch.setenv("SUBSCRIBER_DB_PATH", str(tmp_path / "subs.db"))
+    monkeypatch.delenv("UNSUBSCRIBE_SECRET", raising=False)
+    monkeypatch.setenv("ALLOW_UNVERIFIED_SUBSCRIBE", "1")
+    client = _client(tmp_path, monkeypatch)
+    import backend.app as app_module
+
+    monkeypatch.setattr(app_module, "_confirm_sender", lambda: None)
+    resp = client.post("/subscribe", json={"email": "dev@x.com"})
+    assert resp.status_code == 200
+    assert app_module._subscribers.active_emails() == ["dev@x.com"]

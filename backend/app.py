@@ -179,9 +179,12 @@ def subscribe(body: SubscribeRequest, request: Request) -> dict:
             "<p>If you didn't request this, ignore this email and nothing happens.</p>",
             f"Confirm your subscription: {link}\nIf you didn't request this, ignore this email.",
         )
-    else:
-        # Dev fallback: no email provider configured — activate directly.
+    elif os.environ.get("ALLOW_UNVERIFIED_SUBSCRIBE") == "1":
+        # Dev-only fallback: no email provider configured — activate directly.
         _subscribers.activate(email)
+    else:
+        # Unconfigured in production must not silently skip double-opt-in.
+        raise HTTPException(status_code=503, detail="subscriptions temporarily unavailable")
     return {"pending": True, "email": email}
 
 
