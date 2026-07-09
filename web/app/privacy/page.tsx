@@ -4,6 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy — AI Safety Opportunities",
   description: "How this site collects, filters, and removes data.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

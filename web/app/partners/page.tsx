@@ -10,6 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Partner communities — AI Safety Opportunities",
   description: "The communities whose opportunities feed this board.",
+  alternates: { canonical: "/partners" },
 };
 
 const DISCORD_INSTALL_URL =
