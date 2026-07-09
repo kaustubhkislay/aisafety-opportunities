@@ -86,13 +86,13 @@ export default async function PartnersPage() {
         <div className="mt-3 flex flex-wrap gap-2">
           <a
             href={DISCORD_INSTALL_URL}
-            className="inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+            className="inline-block rounded-sm border border-[var(--brand)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--brand)] shadow-[0_1px_3px_rgba(28,25,23,0.1)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
           >
             Add to Discord
           </a>
           <a
             href={SLACK_INSTALL_URL}
-            className="inline-block rounded bg-[var(--brand)] px-4 py-2 text-sm font-medium !text-white transition-colors hover:bg-[var(--brand-hover)] active:translate-y-px"
+            className="inline-block rounded-sm border border-[var(--brand)] bg-[var(--card)] px-4 py-2 text-sm font-medium text-[var(--brand)] shadow-[0_1px_3px_rgba(28,25,23,0.1)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
           >
             Add to Slack
           </a>

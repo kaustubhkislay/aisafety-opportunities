@@ -38,7 +38,7 @@ export default async function Home() {
             <SubscribeForm />
             <a
               href={INSTALL_URL}
-              className="box-border whitespace-nowrap rounded border border-[var(--brand)] px-3 py-1.5 text-center text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
+              className="box-border whitespace-nowrap rounded-sm border border-[var(--brand)] bg-[var(--card)] px-3 py-1.5 text-center text-sm font-medium text-[var(--brand)] shadow-[0_1px_3px_rgba(28,25,23,0.1)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
             >
               Add community
             </a>

@@ -228,7 +228,7 @@ function MultiSelect({
             : `${selected.length} ${noun}`}
         {" ▾"}
       </summary>
-      <div className="absolute left-0 z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded bg-[var(--card)] p-2 shadow-[0_4px_16px_rgba(28,25,23,0.25)]">
+      <div className="absolute left-0 z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded-sm border border-stone-300/80 bg-[var(--card)] p-2 shadow-[0_4px_16px_rgba(28,25,23,0.25)]">
         {options.map((opt) => (
           <label key={opt} className="flex items-center gap-1.5 py-1 text-sm">
             <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} />
@@ -310,7 +310,9 @@ export function OpportunityList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, nowISO]);
 
-  const control = "rounded bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] lg:w-full";
+  // Controls dress like small paper scraps to match the card restyle:
+  // white-adjacent, thin border, soft shadow, square-ish corners.
+  const control = "rounded-sm border border-stone-300/80 bg-[var(--card)] px-3 py-1.5 text-sm shadow-[0_1px_3px_rgba(28,25,23,0.1)] focus:outline-none focus:ring-1 focus:ring-[var(--brand)] lg:w-full";
   // Native selects size to their longest <option> and never shrink, so one
   // long location value can force the page wider than a phone viewport.
   // The cap must be a fixed length: percentage max-widths are ignored
