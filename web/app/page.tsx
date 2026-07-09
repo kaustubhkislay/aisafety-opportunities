@@ -35,11 +35,11 @@ export default async function Home() {
               <a href="/feed.xml" className={toc}>RSS</a>
             </nav>
           </div>
-          <div className="flex flex-col items-start gap-2 lg:items-end">
+          <div className="flex flex-wrap items-center gap-2">
             <SubscribeForm />
             <a
               href={INSTALL_URL}
-              className="box-border w-44 rounded border border-[var(--brand)] px-3 py-1.5 text-center text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
+              className="box-border whitespace-nowrap rounded border border-[var(--brand)] px-3 py-1.5 text-center text-sm font-medium text-[var(--brand)] transition-colors hover:bg-[var(--brand-tint)] active:translate-y-px"
             >
               Add community
             </a>
