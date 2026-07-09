@@ -51,21 +51,67 @@ describe("server attribution", () => {
 });
 
 describe("location filter and sort", () => {
-  it("filters by location", async () => {
+  it("filters by location via checkboxes and supports multiple selections", async () => {
     render(
       <OpportunityList
         opportunities={[
           opp({ title: "Bay Role", location: "Berkeley, CA", dedupKey: "a" }),
           opp({ title: "UK Role", location: "London", dedupKey: "b" }),
+          opp({ title: "NYC Role", location: "New York", dedupKey: "c" }),
         ]}
         nowISO={NOW_ISO}
       />,
     );
-    await userEvent.selectOptions(screen.getByLabelText("Filter by location"), "London");
+    await userEvent.click(screen.getByRole("checkbox", { name: "London" }));
     expect(screen.getByText("UK Role")).toBeInTheDocument();
+    expect(screen.queryByText("Bay Role")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("checkbox", { name: "New York" }));
+    expect(screen.getByText("UK Role")).toBeInTheDocument();
+    expect(screen.getByText("NYC Role")).toBeInTheDocument();
     expect(screen.queryByText("Bay Role")).not.toBeInTheDocument();
   });
 
+  it("splits combined locations so the option list has no overlapping entries", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "UK Only", location: "London, UK", dedupKey: "a" }),
+          opp({ title: "UK And DC", location: "London, UK + Washington, DC", dedupKey: "b" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    // one "London, UK" option (not a separate combined entry), plus the atom "Washington, DC"
+    expect(screen.getAllByRole("checkbox", { name: "London, UK" })).toHaveLength(1);
+    expect(screen.getByRole("checkbox", { name: "Washington, DC" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: "London, UK + Washington, DC" }),
+    ).not.toBeInTheDocument();
+
+    // the combined record matches either of its atoms
+    await userEvent.click(screen.getByRole("checkbox", { name: "Washington, DC" }));
+    expect(screen.getByText("UK And DC")).toBeInTheDocument();
+    expect(screen.queryByText("UK Only")).not.toBeInTheDocument();
+  });
+
+  it("filters by type via checkboxes with multiple selections", async () => {
+    render(
+      <OpportunityList
+        opportunities={[
+          opp({ title: "A Job", type: "job", dedupKey: "a" }),
+          opp({ title: "A Grant", type: "grant", dedupKey: "b" }),
+          opp({ title: "An Event", type: "event", dedupKey: "c" }),
+        ]}
+        nowISO={NOW_ISO}
+      />,
+    );
+    await userEvent.click(screen.getByRole("checkbox", { name: "job" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "grant" }));
+    expect(screen.getByText("A Job")).toBeInTheDocument();
+    expect(screen.getByText("A Grant")).toBeInTheDocument();
+    expect(screen.queryByText("An Event")).not.toBeInTheDocument();
+  });
 });
 
 describe("board grouping", () => {
@@ -160,23 +206,28 @@ describe("filter controls", () => {
     );
     // Fixed-length cap required: percentage max-widths are ignored during
     // intrinsic sizing, so max-w-full would not prevent the overflow.
-    expect(screen.getByLabelText("Filter by location")).toHaveClass("max-w-56");
-    expect(screen.getByLabelText("Filter by type")).toHaveClass("max-w-56");
+    expect(screen.getByLabelText("All locations")).toHaveClass("max-w-56");
+    expect(screen.getByLabelText("All types")).toHaveClass("max-w-56");
+    expect(screen.getByLabelText("Filter by category")).toHaveClass("max-w-56");
   });
 });
 
 describe("category badges and filter", () => {
-  it("renders category badges on cards", () => {
+  it("renders filled single-letter category chips (T, G, O)", () => {
     render(
       <OpportunityList
-        opportunities={[opp({ title: "X", categories: ["tech", "gov"], dedupKey: "x" })]}
+        opportunities={[opp({ title: "X", categories: ["tech", "gov", "other"], dedupKey: "x" })]}
         nowISO={NOW_ISO}
       />,
     );
-    // dropdown options also carry the labels, so scope to the card
-    const card = screen.getByRole("listitem");
-    expect(within(card).getByText("tech")).toBeInTheDocument();
-    expect(within(card).getByText("gov")).toBeInTheDocument();
+    const card = screen.getAllByRole("listitem").find((li) => within(li).queryByText("X"))!;
+    const chip = (name: string) => within(card).getByTitle(name);
+    expect(chip("tech")).toHaveTextContent(/^T$/);
+    expect(chip("tech")).toHaveClass("bg-teal-600");
+    expect(chip("gov")).toHaveTextContent(/^G$/);
+    expect(chip("gov")).toHaveClass("bg-indigo-600");
+    expect(chip("other")).toHaveTextContent(/^O$/);
+    expect(chip("other")).toHaveClass("bg-stone-400");
   });
 
   it("filters by category", async () => {

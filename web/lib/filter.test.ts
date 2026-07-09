@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filterAndSort } from "@/lib/filter";
+import { filterAndSort, splitLocations } from "@/lib/filter";
 import type { Opportunity } from "@/lib/types";
 
 const NOW = new Date("2026-06-26T12:00:00Z");
@@ -94,5 +94,38 @@ describe("category filter", () => {
     ];
     expect(filterAndSort(items, { categories: ["gov"] }, NOW).map((o) => o.title)).toEqual(["Both"]);
     expect(filterAndSort(items, { categories: ["tech"] }, NOW).map((o) => o.title).sort()).toEqual(["Both", "Tech"]);
+  });
+});
+
+describe("splitLocations", () => {
+  it("returns single locations as one atom", () => {
+    expect(splitLocations("London, UK")).toEqual(["London, UK"]);
+  });
+
+  it("splits combined locations on '+' and trims", () => {
+    expect(splitLocations("London, UK + Washington, DC")).toEqual([
+      "London, UK",
+      "Washington, DC",
+    ]);
+  });
+
+  it("handles null and empty", () => {
+    expect(splitLocations(null)).toEqual([]);
+    expect(splitLocations("")).toEqual([]);
+  });
+});
+
+describe("multi-location records", () => {
+  it("a combined-location record matches any of its atoms", () => {
+    const items = [
+      opp({ title: "Both", location: "London, UK + Washington, DC", dedupKey: "1" }),
+      opp({ title: "UK", location: "London, UK", dedupKey: "2" }),
+    ];
+    expect(
+      filterAndSort(items, { locations: ["Washington, DC"] }, NOW).map((o) => o.title),
+    ).toEqual(["Both"]);
+    expect(filterAndSort(items, { locations: ["London, UK"] }, NOW).map((o) => o.title).sort()).toEqual(
+      ["Both", "UK"],
+    );
   });
 });

@@ -2,12 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type { Opportunity, OppType } from "@/lib/types";
-import { filterAndSort } from "@/lib/filter";
+import { filterAndSort, splitLocations } from "@/lib/filter";
 import { deriveStatus, isFresh } from "@/lib/status";
 
 const TYPES: OppType[] = [
   "job", "internship", "fellowship", "grant", "event", "course", "reading-group", "other",
 ];
+
+// Category tags: filled single-letter chips (T = tech, G = gov, O = other).
+const CATEGORY_CHIP: Record<string, string> = {
+  tech: "bg-teal-600",
+  gov: "bg-indigo-600",
+  other: "bg-stone-400",
+};
 
 const TYPE_COLORS: Record<string, string> = {
   job: "text-slate-600",
@@ -70,12 +77,13 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
       <div className="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.18em]">
         <span className="flex flex-wrap gap-2">
           <span className={`font-medium ${badge}`}>{o.type}</span>
-          {o.categories.filter((c) => c !== "other").map((c) => (
+          {o.categories.map((c) => (
             <span
               key={c}
-              className={c === "tech" ? "font-medium text-teal-700" : "font-medium text-indigo-700"}
+              title={c}
+              className={`rounded px-1.5 py-0.5 text-[10px] font-semibold leading-none tracking-normal text-white ${CATEGORY_CHIP[c] ?? CATEGORY_CHIP.other}`}
             >
-              {c}
+              {c.charAt(0).toUpperCase()}
             </span>
           ))}
         </span>
@@ -112,6 +120,48 @@ function Card({ o, now }: { o: Opportunity; now: Date }) {
   );
 }
 
+function MultiSelect({
+  label,
+  noun,
+  options,
+  selected,
+  onChange,
+  className,
+}: {
+  label: string;
+  noun: string;
+  options: string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  className: string;
+}) {
+  const toggle = (opt: string) =>
+    onChange(selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt]);
+  return (
+    <details className="relative">
+      <summary
+        aria-label={label}
+        className={`${className} block cursor-pointer select-none list-none [&::-webkit-details-marker]:hidden`}
+      >
+        {selected.length === 0
+          ? label
+          : selected.length === 1
+            ? selected[0]
+            : `${selected.length} ${noun}`}
+        {" ▾"}
+      </summary>
+      <div className="absolute left-0 z-20 mt-1 max-h-64 w-56 overflow-y-auto rounded bg-[var(--card)] p-2 shadow-[0_4px_16px_rgba(28,25,23,0.25)]">
+        {options.map((opt) => (
+          <label key={opt} className="flex items-center gap-1.5 py-1 text-sm">
+            <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} />
+            <span className="min-w-0 break-words">{opt}</span>
+          </label>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 function Section({
   title,
   items,
@@ -145,14 +195,14 @@ export function OpportunityList({
 }) {
   const now = new Date(nowISO);
   const [text, setText] = useState("");
-  const [type, setType] = useState("");
-  const [location, setLocation] = useState("");
+  const [types, setTypes] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
   const [category, setCategory] = useState("");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [showPast, setShowPast] = useState(false);
 
-  const locations = useMemo(
-    () => Array.from(new Set(opportunities.map((o) => o.location).filter((l): l is string => !!l))).sort(),
+  const locationOptions = useMemo(
+    () => Array.from(new Set(opportunities.flatMap((o) => splitLocations(o.location)))).sort(),
     [opportunities],
   );
 
@@ -160,11 +210,11 @@ export function OpportunityList({
     () =>
       filterAndSort(
         opportunities,
-        { text, types: type ? [type] : [], locations: location ? [location] : [], categories: category ? [category] : [], remoteOnly, showPast },
+        { text, types, locations, categories: category ? [category] : [], remoteOnly, showPast },
         now,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [opportunities, text, type, location, category, remoteOnly, showPast, nowISO],
+    [opportunities, text, types, locations, category, remoteOnly, showPast, nowISO],
   );
 
   const groups = useMemo(() => {
@@ -199,12 +249,14 @@ export function OpportunityList({
           onChange={(e) => setText(e.target.value)}
           className={`${control} w-full sm:w-auto sm:min-w-[10rem] sm:flex-1 lg:w-full`}
         />
-        <select value={type} onChange={(e) => setType(e.target.value)} className={select} aria-label="Filter by type">
-          <option value="">All types</option>
-          {TYPES.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+        <MultiSelect
+          label="All types"
+          noun="types"
+          options={TYPES}
+          selected={types}
+          onChange={setTypes}
+          className={select}
+        />
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -216,18 +268,15 @@ export function OpportunityList({
           <option value="gov">gov</option>
           <option value="other">other</option>
         </select>
-        {locations.length > 0 && (
-          <select
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
+        {locationOptions.length > 0 && (
+          <MultiSelect
+            label="All locations"
+            noun="locations"
+            options={locationOptions}
+            selected={locations}
+            onChange={setLocations}
             className={select}
-            aria-label="Filter by location"
-          >
-            <option value="">All locations</option>
-            {locations.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
+          />
         )}
         <label className="flex items-center gap-1.5 text-sm">
           <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
