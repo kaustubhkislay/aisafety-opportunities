@@ -50,6 +50,11 @@ it("matches UChicago's Existential Risk Laboratory under its workspace-name vari
   expect(logoFor("UChicago AI Safety")).toBe("/logos/existential-risk-laboratory.webp");
 });
 
+it("matches Rice AI Alignment's guild name and acronym", () => {
+  expect(logoFor("Rice AI Alignment")).toBe("/logos/rice-ai-alignment.webp");
+  expect(logoFor("RAIA")).toBe("/logos/rice-ai-alignment.webp");
+});
+
 it("matches Georgia Tech's guild name", () => {
   expect(logoFor("AI Safety Initiative at Georgia Tech")).toBe(
     "/logos/ai-safety-initiative-at-georgia-tech.webp",

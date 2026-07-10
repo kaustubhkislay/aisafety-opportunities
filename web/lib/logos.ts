@@ -45,6 +45,7 @@ const LOGO_ENTRIES: LogoEntry[] = [
   { file: "/logos/yale-ai-alignment.webp", aliases: ["YAIA", "Yale AI Alignment", "Yale AI Alignment (YAIA)"] },
   { file: "/logos/ai-safety-bergen.webp", aliases: ["AI Safety Bergen"] },
   { file: "/logos/existential-risk-laboratory.webp", aliases: ["Existential Risk Laboratory", "The Existential Risk Laboratory", "Existential Risk Laboratory (XLab)", "XLab", "UChicago XLab", "UChicago AI Safety"] },
+  { file: "/logos/rice-ai-alignment.webp", aliases: ["RAIA", "Rice AI Alignment", "Rice AI Alignment (RAIA)", "Rice AI Safety"] },
 ];
 
 function normalize(name: string): string {
