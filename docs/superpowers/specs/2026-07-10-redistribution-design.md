@@ -5,14 +5,20 @@ communities that don't already have them — each community's #opportunities
 channel becomes a two-way port: what they post flows out to everyone, and
 what everyone else posts flows in.
 
-## Decisions (defaults chosen in design discussion; user was AFK — revisit)
+## Decisions (confirmed with user 2026-07-10)
 
-- **Cadence:** one daily digest post per community (skip empty days), not
-  real-time. Mirrors the email digest; predictable and non-spammy.
+- **Cadence & shape:** individual posts — each missing opportunity is its
+  own message in the community's channel, so items read like normal
+  opportunity posts and can be reacted to (and retracted) individually.
+  Delivery still runs from the daily cron sweep (posts spaced out within
+  a run to respect rate limits; a per-run cap of ~10 items per community
+  guards against firehosing a fresh opt-in — the remainder rolls to the
+  next day).
 - **Where + consent:** posts go to the same #opportunities channel the bot
-  reads, but ONLY for communities that explicitly opt in. The read-only
-  pitch is load-bearing for the trust contract, so redistribution is a
-  separate, opt-in capability with its own permission grant.
+  reads, but ONLY for communities that explicitly opt in to writing. The
+  read-only pitch is load-bearing for the trust contract, so
+  redistribution is a separate, opt-in capability with its own
+  permission grant.
 - **Content:** everything live they don't have — new records whose
   `source_servers` does not include the community. Per-community filters
   (type/category/location) are v2.
@@ -58,8 +64,9 @@ to receive the shared feed."
 ## Architecture
 
 New module `backend/redistribute.py`, run by supercronic once daily
-(offset from the email digest, e.g. 15:30 UTC), same single-process
-constraints as everything else:
+(offset from the email digest, e.g. 15:30 UTC), posting each missing
+record as an individual message, same single-process constraints as
+everything else:
 
 ```
 Airtable (live records) ──► diff vs source_servers ──► per-community batch
@@ -75,10 +82,11 @@ Components:
     posted_at)` — the ledger. Powers both idempotence (never repost the
     same record to the same community) and retraction (find copies to
     delete).
-- **Digest composer:** compact per-day message — title (linked), org,
-  type/category, deadline; N items max with a "see all on the site" link.
-  Discord: one embed; Slack: block kit. Reuses `derive_status` and the
-  digest's item-selection logic (`backend/digest.py` precedent).
+- **Post composer:** one message per opportunity — title (linked), org,
+  type/category, deadline, origin credit ("shared via
+  aisopportunities.com, first seen in <community>"). Discord: one embed;
+  Slack: block kit. Reuses `derive_status` and the item-selection logic
+  precedent from `backend/digest.py`.
 - **Posters:** Discord REST post (the gateway bot's token already exists;
   it gains permission only in opted-in guilds), Slack `chat.postMessage`
   with the per-workspace token from `slack_tokens.db`.
@@ -137,8 +145,5 @@ Components:
 
 ## Open questions (deferred, not blocking)
 
-- Digest post identity: post as the bot with clear "shared via
-  aisopportunities.com" attribution + origin community credit per item?
-  (Leaning yes — credit strengthens the network story.)
 - Should communities that only *receive* (never source) count as partners
   on the site? (Leaning: separate "receiving" list or badge.)
