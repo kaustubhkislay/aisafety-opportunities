@@ -1,21 +1,22 @@
 # aisafety-opportunities
 
-A public, auto-updating board of AI-safety opportunities — jobs, fellowships, grants, events, courses — fed by Discord (and later Slack) communities that install an open-source bot into their own servers.
+A public, auto-updating board of AI-safety opportunities — jobs, fellowships, grants, events, courses — fed by Discord and Slack communities that install an open-source, read-only bot into their own servers.
 
 **This whole project is open source on purpose.** We ask community owners to let our code read their channels, so the code that does the reading — and everything that happens to the data afterward — is auditable here. The output is public by design: everything that survives filtering becomes visible on the site. There is no private data product.
 
 ## How it works
 
 ```
-Installed Discord bot ──► backend ──► raw store ──► filter + PII strip + link-safety
-   │  (private/excluded messages                                      │
-   │   are dropped IN the server,                                     ▼
-   │   before anything is sent)                              LLM extract + dedupe
-   │                                                                  │
+Installed Discord bot ─┐
+                       ├─► backend ──► raw store ──► filter + PII strip + link-safety
+Installed Slack app  ──┘                                              │
+   │  (private/excluded messages                                      ▼
+   │   are dropped before storage                            LLM extract + dedupe
+   │   or processing)                                                 │
    └── lock-reaction / [private] edit ── removes from site ◄── Airtable ──► public site
 ```
 
-- The installed bot is a **thin client** — it forwards messages and runs the privacy/exclusion check locally. All extraction logic lives in the backend.
+- The installed bot is a **thin client** — it forwards messages and runs the privacy/exclusion check at the edge. All extraction logic lives in the backend, shared by both platforms.
 - Messages marked `[private]` / `[uni-reserved]` / `school-specific` / `internal` / `do-not-share`, or posted in a channel an owner sets private-by-default, are **never transmitted**.
 - An LLM extracts genuine opportunities, strips personal contact info, withholds suspicious links, and dedupes across communities.
 
@@ -92,13 +93,13 @@ yourself:
 | `slackbot/` | Slack adapter (Events API translation, OAuth, per-workspace tokens) |
 | `backend/` | Ingestion API + extraction pipeline |
 | `web/` | Public website (Vercel) |
-| `docs/` | Historical design spec + launch ledger (current architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md)) |
+| `docs/` | Design specs + launch ledger (current architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md)) |
 
 Current architecture: [`ARCHITECTURE.md`](ARCHITECTURE.md). Original design: [`docs/design-spec.md`](docs/design-spec.md) (historical).
 
 ## Status
 
-**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord and Slack ingestion are both live — Slack shipped 2026-07-07 as a second adapter on the same backend, with the production Slack app registered and installable from the link above or the site's Add-community buttons. Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both. End-to-end smoke test (publish, edge exclusion, retraction, purge, digest) passed 2026-07-05/06.
+**Live at [aisopportunities.com](https://aisopportunities.com)** (launched 2026-07-06). Discord and Slack ingestion are both live and in production use — Slack shipped 2026-07-07 as a second adapter on the same backend, and the first external Slack workspaces connected 2026-07-09. Seven partner communities currently feed the board (see [aisopportunities.com/partners](https://aisopportunities.com/partners)), with a daily email digest and an RSS feed (`/feed.xml`) on the distribution side. The site presents the board as a bulletin wall — searchable, with multi-select type/category/location filters and expandable cards. Backend runs on Fly.io; site on Vercel; merges to `main` auto-deploy both, gated by CI and a post-deploy health check. Next planned: redistributing aggregated opportunities back to opted-in communities ([design spec](docs/superpowers/specs/2026-07-10-redistribution-design.md)).
 
 ## Privacy
 
