@@ -23,6 +23,12 @@ const INSTALL_DOCS_URL =
 // connected server/workspace name); communities without a match render
 // without a logo.
 
+// Communities that installed the bot but haven't published an opportunity
+// yet — the dynamic list below only surfaces communities with a live record,
+// so these are pinned manually until their first post. Deduped by logo
+// identity, so an entry drops out automatically once its community publishes.
+const INSTALLED_PARTNERS = ["Columbia AI Alignment Club (CAIAC)"];
+
 export default async function PartnersPage() {
   const { items } = await loadOpportunitiesResult();
   const now = new Date();
@@ -32,6 +38,12 @@ export default async function PartnersPage() {
     for (const s of o.sourceServers) counts.set(s, (counts.get(s) ?? 0) + 1);
   }
   const partners = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  for (const name of INSTALLED_PARTNERS) {
+    const dup = partners.some(
+      ([n]) => n === name || (logoFor(n) !== null && logoFor(n) === logoFor(name)),
+    );
+    if (!dup) partners.push([name, 0]);
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
