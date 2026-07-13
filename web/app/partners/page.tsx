@@ -27,7 +27,11 @@ const INSTALL_DOCS_URL =
 // yet — the dynamic list below only surfaces communities with a live record,
 // so these are pinned manually until their first post. Deduped by logo
 // identity, so an entry drops out automatically once its community publishes.
-const INSTALLED_PARTNERS = ["Columbia AI Alignment Club (CAIAC)"];
+const INSTALLED_PARTNERS = [
+  "Columbia AI Alignment Club (CAIAC)",
+  "Yale AI Alignment (YAIA)",
+  "AI Alignment @ Illinois",
+];
 
 export default async function PartnersPage() {
   const { items } = await loadOpportunitiesResult();
