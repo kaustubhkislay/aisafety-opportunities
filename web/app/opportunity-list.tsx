@@ -20,6 +20,7 @@ const PILL_COLORS: Record<string, string> = {
   "reading-group": "text-rose-700",
   tech: "text-teal-700",
   gov: "text-indigo-700",
+  ops: "text-orange-700",
   other: "text-stone-500",
 };
 
@@ -340,7 +341,7 @@ export function OpportunityList({
         <MultiSelect
           label="All categories"
           noun="categories"
-          options={["tech", "gov", "other"]}
+          options={["tech", "gov", "ops", "other"]}
           selected={categories}
           onChange={setCategories}
           className={select}
