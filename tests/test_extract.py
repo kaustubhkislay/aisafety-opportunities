@@ -122,6 +122,12 @@ def test_categories_are_validated_and_multi():
     assert opp.categories == ["tech", "gov"]
 
 
+def test_ops_is_a_valid_category():
+    client = FakeClient(['{"is_opportunity": true, "title": "X", "categories": ["ops"]}'])
+    opp = Extractor(client, "m").extract("x")
+    assert opp.categories == ["ops"]
+
+
 def test_bogus_categories_fall_back_to_other():
     client = FakeClient(['{"is_opportunity": true, "title": "X", "categories": ["banana"]}'])
     opp = Extractor(client, "m").extract("x")
