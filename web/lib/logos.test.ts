@@ -55,6 +55,12 @@ it("matches Rice AI Alignment's guild name and acronym", () => {
   expect(logoFor("RAIA")).toBe("/logos/rice-ai-alignment.webp");
 });
 
+it("matches AI Safety at UCI under its club-name variants", () => {
+  expect(logoFor("AI Safety at UCI")).toBe("/logos/ai-safety-at-uci.webp");
+  expect(logoFor("AI Safety Collective at Irvine")).toBe("/logos/ai-safety-at-uci.webp");
+  expect(logoFor("AISCI")).toBe("/logos/ai-safety-at-uci.webp");
+});
+
 it("matches Georgia Tech's guild name", () => {
   expect(logoFor("AI Safety Initiative at Georgia Tech")).toBe(
     "/logos/ai-safety-initiative-at-georgia-tech.webp",
