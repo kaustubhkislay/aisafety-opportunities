@@ -19,6 +19,11 @@ log = logging.getLogger("semantic_dedup")
 # org) before it is worth an LLM call — deadlines cluster too much alone.
 _SIGNALS_REQUIRED = 2
 _TITLE_JACCARD = 0.5
+# Exception: a long near-identical title stands alone when a deadline is
+# missing on either side — live case: a DCMC cross-post where one variant had
+# no extractable deadline and the org was spelled differently ("DCMC" vs
+# "DC Mini-Conference"), so neither backup signal could fire.
+_STRONG_TITLE_TOKENS = 4
 
 JUDGE_PROMPT = (
     "You judge whether two postings describe the same opportunity — the same "
@@ -33,6 +38,19 @@ _COMPARE_FIELDS = ("title", "org", "type", "deadline", "link", "location", "desc
 
 def _tokens(value) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", (value or "").lower()))
+
+
+def _strong_title_fallback(new_fields: dict, fields: dict) -> bool:
+    """Title evidence alone, admissible only when a deadline is absent on one
+    side (present-but-different deadlines suggest another round/cohort)."""
+    if new_fields.get("deadline") and fields.get("deadline"):
+        return False
+    title_a, title_b = _tokens(new_fields.get("title")), _tokens(fields.get("title"))
+    union = title_a | title_b
+    shared = title_a & title_b
+    if len(shared) < _STRONG_TITLE_TOKENS:
+        return False
+    return bool(union) and len(shared) / len(union) >= _TITLE_JACCARD
 
 
 def _signals(new_fields: dict, fields: dict) -> int:
@@ -63,6 +81,8 @@ def find_candidates(new_fields: dict, records: list[dict], limit: int = 3) -> li
         if fields.get("status") == "expired":
             continue
         score = _signals(new_fields, fields)
+        if score < _SIGNALS_REQUIRED and _strong_title_fallback(new_fields, fields):
+            score = _SIGNALS_REQUIRED
         if score >= _SIGNALS_REQUIRED:
             scored.append((score, record))
     scored.sort(key=lambda pair: pair[0], reverse=True)
