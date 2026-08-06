@@ -90,3 +90,32 @@ def _finish(counts: dict, revalidator) -> None:
     log.info("dedup sweep: %s", counts)
     if counts["merged"] and revalidator is not None:
         revalidator()
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    import os
+
+    from openai import OpenAI
+
+    from backend.airtable import backend_from_env
+    from backend.revalidate import make_revalidator
+    from backend.semantic_dedup import DuplicateJudge
+    from backend.spend import SpendGuard
+
+    client = OpenAI(
+        base_url=os.environ["OPENAI_BASE_URL"],
+        api_key=os.environ["OPENAI_API_KEY"],
+    )
+    judge = DuplicateJudge(client, os.environ["OPENAI_MODEL"])
+    spend_guard = SpendGuard.from_env(os.environ)
+    if spend_guard is None:
+        log.warning("LLM_DAILY_CALL_CAP unset — sweep spend is uncapped")
+    run_dedup_sweep(
+        backend_from_env(), judge,
+        spend_guard=spend_guard, revalidator=make_revalidator(os.environ),
+    )
+
+
+if __name__ == "__main__":
+    main()
