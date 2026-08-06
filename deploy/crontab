@@ -1,3 +1,4 @@
-# Times in UTC. status: daily; digest: daily (previous day's new items; skips empty days).
+# Times in UTC. status: daily; dedup sweep: daily (after status, before digest); digest: daily (previous day's new items; skips empty days).
 0 9 * * * cd /app && python -m backend.status_job
+0 10 * * * cd /app && python -m backend.dedup_sweep
 0 15 * * * cd /app && python -m backend.digest

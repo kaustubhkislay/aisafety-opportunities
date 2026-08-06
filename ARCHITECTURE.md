@@ -28,7 +28,7 @@ publish side. All of it is enforced in code and covered by tests.
 | API | `uvicorn backend.app` | `/ingest`, `/retract`, `/purge`, `/subscribe` (+confirm), `/unsubscribe`, `/ingested`, `/healthz`, and all `/slack/*` routes |
 | Worker | `backend.worker` | polls raw log → filter → spend cap → LLM extract/classify → deadline enrichment → link safety → dedup (exact key + LLM semantic fallback) → Airtable upsert → site revalidate |
 | Discord bot | `bot.client` | gateway events, exclusion, backfill (14-day window, `opportunities` channels), retraction, guild-join/remove |
-| Cron | supercronic | status job daily 09:00 UTC; digest daily 15:00 UTC (new items only, skips empty days) |
+| Cron | supercronic | status job daily 09:00 UTC; dedup sweep daily 10:00 UTC (re-screens the published board for duplicate pairs the inline dedup missed, auto-merges them); digest daily 15:00 UTC (new items only, skips empty days) |
 
 Any process death restarts the machine; every stage is idempotent/retryable,
 which is what makes that safe.
@@ -56,7 +56,7 @@ which is what makes that safe.
 
 ## Module map
 
-`backend/`: `app` (API), `slack` (Slack routes), `worker`, `extract` (LLM + classification), `enrich` (deadline from linked page), `filter` (cheap prefilter), `linksafety`, `dedup`, `semantic_dedup` (LLM same-opportunity merge across differing links), `airtable` (retrying backend), `store` (raw log), `subscribers`, `digest` (email build/send/tokens), `status_job`, `spend`, `revalidate`, `purge`, `feedback`→removed, `db` (SQLite settings), `models`.
+`backend/`: `app` (API), `slack` (Slack routes), `worker`, `extract` (LLM + classification), `enrich` (deadline from linked page), `filter` (cheap prefilter), `linksafety`, `dedup`, `semantic_dedup` (LLM same-opportunity merge across differing links), `dedup_sweep` (daily re-screen + auto-merge of published duplicates), `airtable` (retrying backend), `store` (raw log), `subscribers`, `digest` (email build/send/tokens), `status_job`, `spend`, `revalidate`, `purge`, `feedback`→removed, `db` (SQLite settings), `models`.
 `bot/`: `client`, `coordinator`, `backfill`, `forwarder`, `exclusion` (tag authority incl. `RETRACTION_TAGS`), `retraction`, `channel_config`, `scope`, `messages`, `config`.
 `slackbot/`: `events` (event→action translation), `verify` (signatures + OAuth state), `tokens`, `channels` (scope cache), `backfill`, `ids` (cross-platform composite ids), `web` (Slack API client).
 `web/`: see `web/README.md`.
