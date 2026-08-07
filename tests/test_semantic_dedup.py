@@ -51,6 +51,49 @@ def test_find_candidates_needs_more_than_a_shared_deadline():
     assert find_candidates(HERON_B, [other]) == []
 
 
+# Live case (2026-08-06): "DCMC 2.0 - AI Governance Workshop in DC" (org
+# "DC Mini-Conference", deadline set) vs "DCMC 2.0 \u2013 AI Governance Conference"
+# (org "DCMC", no deadline extracted). Deadline and org signals both failed, so
+# a clear duplicate never reached the judge.
+DCMC_A = dict(
+    title="DCMC 2.0 - AI Governance Workshop in DC",
+    org="DC Mini-Conference",
+    deadline="2026-08-28",
+    dedup_key="url:dcminiconf.com",
+    status="active",
+)
+DCMC_B = dict(
+    title="DCMC 2.0 \u2013 AI Governance Conference",
+    org="DCMC",
+    deadline=None,
+    dedup_key="url:airtable.com/form",
+    status="active",
+)
+
+
+def test_strong_title_match_with_missing_deadline_is_enough():
+    records = [_rec("rec1", **DCMC_A)]
+    assert find_candidates(DCMC_B, records) == records
+
+
+def test_strong_title_match_with_conflicting_deadlines_is_not_enough():
+    # Both deadlines present and different: likely another round/cohort, and
+    # the judge treats differing deadlines as distinct anyway.
+    other = _rec("rec1", **{**DCMC_A, "deadline": "2026-09-30"})
+    conflicting = {**DCMC_B, "deadline": "2026-08-28"}
+    assert find_candidates(conflicting, [other]) == []
+
+
+def test_short_title_overlap_with_missing_deadline_is_not_enough():
+    # Few shared tokens clear the Jaccard bar too easily on short titles;
+    # without a second signal that is noise, not evidence.
+    a = _rec("rec1", title="AI Fellowship", org="Alpha Institute", deadline="2026-09-01",
+             dedup_key="url:a.example", status="active")
+    b = dict(title="AI Fellowship", org="Beta Labs", deadline=None,
+             dedup_key="url:b.example", status="active")
+    assert find_candidates(b, [a]) == []
+
+
 def test_find_candidates_caps_the_candidate_list():
     records = [_rec(f"rec{i}", **HERON_A) for i in range(10)]
     assert len(find_candidates(HERON_B, records, limit=3)) == 3
