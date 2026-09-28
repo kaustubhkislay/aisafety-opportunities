@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { loadOpportunitiesResult } from "@/lib/airtable";
 import { logoFor } from "@/lib/logos";
+import { mergePartnerCounts } from "@/lib/partners";
 import { deriveStatus } from "@/lib/status";
 
 export const revalidate = 3600;
@@ -41,7 +42,7 @@ export default async function PartnersPage() {
     if (deriveStatus(o.deadline, now) === "expired") continue;
     for (const s of o.sourceServers) counts.set(s, (counts.get(s) ?? 0) + 1);
   }
-  const partners = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  const partners = mergePartnerCounts(counts);
   for (const name of INSTALLED_PARTNERS) {
     const dup = partners.some(
       ([n]) => n === name || (logoFor(n) !== null && logoFor(n) === logoFor(name)),
