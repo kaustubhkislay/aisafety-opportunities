@@ -26,7 +26,7 @@ const LOGO_ENTRIES: LogoEntry[] = [
   { file: "/logos/virginia-ai-security-initiative.webp", aliases: ["VAISI", "Virginia AI Security Initiative", "Virginia AI Security Initiative (VAISI)"] },
   { file: "/logos/ai-safety-at-ucla.webp", aliases: ["AI Safety at UCLA"] },
   { file: "/logos/michigan-ai-safety-initiative.webp", aliases: ["MAISI", "Michigan AI Safety Initiative", "Michigan AI Safety Initiative (MAISI)"] },
-  { file: "/logos/princeton-ai-alignment.webp", aliases: ["PAIA", "Princeton AI Alignment", "Princeton AI Alignment (PAIA)"] },
+  { file: "/logos/princeton-ai-alignment.webp", aliases: ["PAIA", "Princeton AI Alignment", "Princeton AI Alignment (PAIA)", "PAIA (Princeton AI Alignment)"] },
   { file: "/logos/uvic-ai.webp", aliases: ["UVic AI"] },
   { file: "/logos/stanford-ai-alignment.webp", aliases: ["SAIA", "Stanford AI Alignment", "Stanford AI Alignment (SAIA)"] },
   { file: "/logos/ai-safety-hub-edinburgh.webp", aliases: ["AI Safety Hub Edinburgh", "AI Safety Hub Edinburgh (AISHED)", "AISHED"] },
